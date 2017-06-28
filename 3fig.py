@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import numpy.ma as ma
 
+
+# Here you can change the filenames 
 fh =  Dataset("ice_year.nc")
 fh_water = Dataset("water_year.nc")
 fh_sediments = Dataset("sediments_year.nc")
@@ -48,7 +50,13 @@ def read_var(name):
     fh.close()
 
  
-  
+###########################
+#  it's a place for you   #
+#  to change the variable #
+#  you want to plot       #
+########################### 
+
+ 
 #data = read_var('B_pH_pH')
 data = read_var('P1_Chl')
 
@@ -57,19 +65,21 @@ var_ice = data[0]
 var_water = data[1]
 var_sed = data[2]
 name = data[3]
-                        
+
+# interpolate data to plot                         
 X,Y = np.meshgrid(time,depth_ice)
 X_water,Y_water = np.meshgrid(time,depth_water)
 X_sed, Y_sed = np.meshgrid(time,depth_sed)
 
-
+#create a figure 
 fig = plt.figure(figsize=(11.69 , 8.27), dpi=100)
 gs = gridspec.GridSpec(3, 1)
 
-gs.update(left=0.1, right= 1.03,top = 0.95,bottom = 0.04,
+#update the layout 
+gs.update(left=0.1, right= 1.03,top = 0.95,bottom = 0.08,
                    wspace=0.2,hspace=0.2)
 
-
+#add subplots
 ax0 = fig.add_subplot(gs[0]) # o2 ice 
 ax0.set_ylabel("Ice thickness (cm) ")
 
@@ -78,44 +88,50 @@ ax1.set_ylabel("Depth (m) ")
 
 ax2 = fig.add_subplot(gs[2]) # o2 sed
 ax2.set_ylabel("Depth (m) ")
+# set xaxis label  
+ax2.set_xlabel("number of day")
 
+#specify colormap
 cmap = 'terrain'
+
 #min = ma.min(var_ice)
 #max = ma.max(var_ice)
 #var_levels = np.linspace(min,max,num = 20 )
 
+#plot 2d figures 
 CS1 = ax0.contourf(X,Y, var_ice,cmap = cmap) #,levels = var_levels)
 ax0.set_title(name)
+
+#add colorbar 
 plt.colorbar(CS1,ax = ax0,pad=0.02,aspect = 4)
 
 CS4 = ax1.contourf(X_water,Y_water, var_water, cmap = cmap)
 ax1.set_title(name)
-plt.colorbar(CS4,ax= ax1,pad=0.02,aspect = 4)
+plt.colorbar(CS4,ax = ax1,pad=0.02,aspect = 4)
 
 
 CS7 = ax2.contourf(X_sed,Y_sed, var_sed, cmap = cmap)
 ax2.set_title(name)
-plt.colorbar(CS7,ax= ax2,pad=0.02,aspect = 4)
-
-
+plt.colorbar(CS7,ax = ax2,pad=0.02,aspect = 4)
 
 
 for axis in (ax0,ax1,ax2): 
-    axis.yaxis.set_label_coords(-0.1, 0.6)
+    axis.yaxis.set_label_coords(-0.06, 0.6)
 
 ax1.set_ylim(max_water,min_water)
-ax1.set_xticklabels([])  
+
 
 ax2.set_ylim(max_sed,min_sed)  
-    
 
-ax0.set_xticklabels([])
-   
-ax2.set_xlabel("number of day")  
-ax2.set_xticklabels([])  
- 
- 
+# hide horizontal axis labels 
+ax0.set_xticklabels([])    
+ax1.set_xticklabels([])     
+
+
 
 plt.show()    
+
 #plt.savefig('ice_brom.pdf', format='pdf')
+
+# Save in a vector format 
 #plt.savefig('ice_brom.eps', format='eps')
