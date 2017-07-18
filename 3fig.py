@@ -42,11 +42,13 @@ time = fh.variables['time'][:]
 
 
 def read_var(name):
+    
     var_ice_nonmasked = np.array(fh.variables[name][:]).T 
     var_ice =  ma.masked_invalid (var_ice_nonmasked)
     var_water = np.array(fh_water.variables[name][:]).T 
     var_sediments = np.array(fh_sediments.variables[name][:]).T 
-    return var_ice,var_water,var_sediments,name
+    data_units = fh.variables[name].units
+    return var_ice,var_water,var_sediments,name,data_units
     fh.close()
 
  
@@ -57,14 +59,18 @@ def read_var(name):
 ########################### 
 
  
-#data = read_var('B_pH_pH')
-data = read_var('P1_Chl')
 
+#data = read_var('P1_Chl')
+#data = read_var('B_pH_pH')
+#data = read_var('B_BIO_DON')
+#data = read_var('B_BIO_O2')
+data = read_var('B_NUT_Si')
 
 var_ice = data[0]
 var_water = data[1]
 var_sed = data[2]
 name = data[3]
+data_units = data[4]
 
 # interpolate data to plot                         
 X,Y = np.meshgrid(time,depth_ice)
@@ -99,19 +105,20 @@ cmap = 'terrain'
 #var_levels = np.linspace(min,max,num = 20 )
 
 #plot 2d figures 
-CS1 = ax0.contourf(X,Y, var_ice,cmap = cmap) #,levels = var_levels)
-ax0.set_title(name)
+#CS1 = ax0.contourf(X,Y, var_ice,cmap = cmap) #,levels = var_levels)
+CS1 = ax0.pcolor(X,Y,var_ice)
+ax0.set_title(name+' '+ str(data_units))
 
 #add colorbar 
 plt.colorbar(CS1,ax = ax0,pad=0.02,aspect = 4)
 
-CS4 = ax1.contourf(X_water,Y_water, var_water, cmap = cmap)
-ax1.set_title(name)
+CS4 = ax1.pcolor(X_water,Y_water, var_water, cmap = cmap)
+ax1.set_title(name +' '+ str(data_units))
 plt.colorbar(CS4,ax = ax1,pad=0.02,aspect = 4)
 
 
-CS7 = ax2.contourf(X_sed,Y_sed, var_sed, cmap = cmap)
-ax2.set_title(name)
+CS7 = ax2.pcolor(X_sed,Y_sed, var_sed, cmap = cmap)
+ax2.set_title(name+' '+ str(data_units))
 plt.colorbar(CS7,ax = ax2,pad=0.02,aspect = 4)
 
 
