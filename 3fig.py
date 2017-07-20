@@ -41,8 +41,13 @@ max_water = np.amax(depth_water)
 min_sed = np.amin(depth_sed)
 max_sed = np.amax(depth_sed)
 
+#########################
+# Values for time axis  #
+#########################
+start = 365
+stop = 720
 
-time = fh.variables['time'][:]  
+time = fh.variables['time']
 time_units = fh.variables['time'].units
 
 #print (time_f)
@@ -79,15 +84,15 @@ name = data[3]
 data_units = data[4]
 
 # interpolate data to plot                         
-X,Y = np.meshgrid(time,depth_ice)
+X,Y = np.meshgrid(time[start:stop],depth_ice)
 format_time = num2date(X,units = time_units)   
 X = format_time
 
-X_water,Y_water = np.meshgrid(time,depth_water)
+X_water,Y_water = np.meshgrid(time[start:stop],depth_water)
 format_time = num2date(X_water,units = time_units)   
 X_water = format_time
 
-X_sed, Y_sed = np.meshgrid(time,depth_sed)
+X_sed, Y_sed = np.meshgrid(time[start:stop],depth_sed)
 format_time = num2date(X_sed,units = time_units)   
 X_sed = format_time
 
@@ -120,18 +125,19 @@ cmap = 'terrain'
 
 #plot 2d figures 
 #CS1 = ax0.contourf(X,Y, var_ice,cmap = cmap) #,levels = var_levels)
-CS1 = ax0.pcolor(X,Y,var_ice)
+
+CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop])
 ax0.set_title(name+' '+ str(data_units))
 
 #add colorbar 
 plt.colorbar(CS1,ax = ax0,pad=0.02,aspect = 4)
 
-CS4 = ax1.pcolor(X_water,Y_water, var_water, cmap = cmap)
+CS4 = ax1.pcolor(X_water,Y_water,var_water[:,start:stop], cmap = cmap)
 ax1.set_title(name +' '+ str(data_units))
 plt.colorbar(CS4,ax = ax1,pad=0.02,aspect = 4)
 
 
-CS7 = ax2.pcolor(X_sed,Y_sed, var_sed, cmap = cmap)
+CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[:,start:stop], cmap = cmap)
 ax2.set_title(name+' '+ str(data_units))
 plt.colorbar(CS7,ax = ax2,pad=0.02,aspect = 4)
 
@@ -141,12 +147,11 @@ for axis in (ax0,ax1,ax2):
 
 ax1.set_ylim(max_water,min_water)
 
-
 ax2.set_ylim(max_sed,min_sed)  
 
 # hide horizontal axis labels 
-#ax0.set_xticklabels([])    
-#ax1.set_xticklabels([])     
+ax0.set_xticklabels([])    
+ax1.set_xticklabels([])     
 
 
 
