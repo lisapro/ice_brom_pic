@@ -4,18 +4,23 @@ Created on 28. jun. 2017
 @author: ELP
 '''
 
-from netCDF4 import Dataset
+from netCDF4 import Dataset,num2date
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import numpy.ma as ma
 
-
+plt.style.use('ggplot')
+#plt.style.use('bmh')
 # Here you can change the filenames 
-fh =  Dataset("ice_year.nc")
-fh_water = Dataset("water_year.nc")
-fh_sediments = Dataset("sediments_year.nc")
 
+#fh =  Dataset("ice_year.nc")
+#fh_water = Dataset("water_year.nc")
+#fh_sediments = Dataset("sediments_year.nc")
+
+fh =  Dataset('/Users/Shamil/binary/brom+ersem/ice.nc')
+fh_water =  Dataset('/Users/Shamil/binary/brom+ersem/water.nc')
+fh_sediments =  Dataset('/Users/Shamil/binary/brom+ersem/sediments.nc')
 
 depth = fh.variables['z'][:] 
 
@@ -38,8 +43,9 @@ max_sed = np.amax(depth_sed)
 
 
 time = fh.variables['time'][:]  
+time_units = fh.variables['time'].units
 
-
+#print (time_f)
 
 def read_var(name):
     
@@ -74,8 +80,16 @@ data_units = data[4]
 
 # interpolate data to plot                         
 X,Y = np.meshgrid(time,depth_ice)
+format_time = num2date(X,units = time_units)   
+X = format_time
+
 X_water,Y_water = np.meshgrid(time,depth_water)
+format_time = num2date(X_water,units = time_units)   
+X_water = format_time
+
 X_sed, Y_sed = np.meshgrid(time,depth_sed)
+format_time = num2date(X_sed,units = time_units)   
+X_sed = format_time
 
 #create a figure 
 fig = plt.figure(figsize=(11.69 , 8.27), dpi=100)
@@ -131,8 +145,8 @@ ax1.set_ylim(max_water,min_water)
 ax2.set_ylim(max_sed,min_sed)  
 
 # hide horizontal axis labels 
-ax0.set_xticklabels([])    
-ax1.set_xticklabels([])     
+#ax0.set_xticklabels([])    
+#ax1.set_xticklabels([])     
 
 
 
