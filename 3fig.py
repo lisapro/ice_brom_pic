@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import numpy.ma as ma
+import matplotlib as mpl
 
 plt.style.use('ggplot')
 #plt.style.use('bmh')
@@ -152,12 +153,13 @@ ax2.set_ylim(max_sed,min_sed)
 # hide horizontal axis labels 
 ax0.set_xticklabels([])    
 ax1.set_xticklabels([])     
+labels = ax2.get_xticklabels()
+plt.setp(labels, rotation=30)
 
-
-
+plt.rcParams.update({'font.size': 14})
 plt.show()    
 
-#plt.savefig('ice_brom.pdf', format='pdf')
+plt.savefig('ice_brom.pdf', format='pdf')
 
 # Save in a vector format 
 #plt.savefig('ice_brom.eps', format='eps')
