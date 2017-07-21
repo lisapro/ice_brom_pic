@@ -10,8 +10,9 @@ import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import numpy.ma as ma
 import matplotlib as mpl
+import matplotlib.dates as mdates
 
-plt.style.use('ggplot')
+#plt.style.use('ggplot')
 #plt.style.use('bmh')
 # Here you can change the filenames 
 
@@ -45,8 +46,8 @@ max_sed = np.amax(depth_sed)
 #########################
 # Values for time axis  #
 #########################
-start = 365
-stop = 720
+start = 1447
+stop = 1811
 
 time = fh.variables['time']
 time_units = fh.variables['time'].units
@@ -86,7 +87,9 @@ data_units = data[4]
 
 # interpolate data to plot                         
 X,Y = np.meshgrid(time[start:stop],depth_ice)
-format_time = num2date(X,units = time_units)   
+format_time = num2date(X,units = time_units)  
+start_f = num2date(time[start],units = time_units) 
+stop_f = num2date(time[stop],units = time_units) 
 X = format_time
 
 X_water,Y_water = np.meshgrid(time[start:stop],depth_water)
@@ -98,24 +101,24 @@ format_time = num2date(X_sed,units = time_units)
 X_sed = format_time
 
 #create a figure 
-fig = plt.figure(figsize=(11.69 , 8.27), dpi=100)
+fig = plt.figure(figsize=(8.3 , 8.27), dpi=100)
 gs = gridspec.GridSpec(3, 1)
 
 #update the layout 
-gs.update(left=0.1, right= 1.03,top = 0.95,bottom = 0.08,
+gs.update(left=0.1, right= 1.03,top = 0.95,bottom = 0.1,
                    wspace=0.2,hspace=0.2)
 
 #add subplots
 ax0 = fig.add_subplot(gs[0]) # o2 ice 
-ax0.set_ylabel("Ice thickness (cm) ")
+ax0.set_ylabel("Ice thickness (cm)", fontsize=14)
 
 ax1 = fig.add_subplot(gs[1]) # o2 water
-ax1.set_ylabel("Depth (m) ")
+ax1.set_ylabel("Depth (m)", fontsize=14)
 
 ax2 = fig.add_subplot(gs[2]) # o2 sed
-ax2.set_ylabel("Depth (m) ")
+ax2.set_ylabel("Depth (m)", fontsize=14)
 # set xaxis label  
-ax2.set_xlabel("number of day")
+ax2.set_xlabel("Date")
 
 #specify colormap
 cmap = 'terrain'
@@ -127,9 +130,8 @@ cmap = 'terrain'
 #plot 2d figures 
 #CS1 = ax0.contourf(X,Y, var_ice,cmap = cmap) #,levels = var_levels)
 
-CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop])
-ax0.set_title(name+' '+ str(data_units))
-
+CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap)
+ax0.set_title((name+' '+ str(data_units)))
 #add colorbar 
 plt.colorbar(CS1,ax = ax0,pad=0.02,aspect = 4)
 
@@ -147,19 +149,26 @@ for axis in (ax0,ax1,ax2):
     axis.yaxis.set_label_coords(-0.06, 0.6)
 
 ax1.set_ylim(max_water,min_water)
-
 ax2.set_ylim(max_sed,min_sed)  
+#ax0.set_xlim(start_f,stop_f)
 
 # hide horizontal axis labels 
 ax0.set_xticklabels([])    
 ax1.set_xticklabels([])     
 labels = ax2.get_xticklabels()
-plt.setp(labels, rotation=30)
+plt.setp(labels,  size = 13) #rotation=30,
 
-plt.rcParams.update({'font.size': 14})
+if stop-start > 365:
+    #ax1.xaxis_date()
+    ax2.xaxis.set_major_formatter(
+        mdates.DateFormatter('%m/%Y'))  
+else : 
+    ax2.xaxis.set_major_formatter(
+        mdates.DateFormatter('%d/%m')) 
+#plt.rcParams.update({'font.size': 14})
 plt.show()    
 
-plt.savefig('ice_brom.pdf', format='pdf')
+#plt.savefig('ice_brom.pdf', format='pdf')
 
 # Save in a vector format 
 #plt.savefig('ice_brom.eps', format='eps')
