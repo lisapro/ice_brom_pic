@@ -74,10 +74,10 @@ def read_var(name):
  
 
 #data = read_var('P1_Chl')
-#data = read_var('B_pH_pH')
+data = read_var('B_pH_pH')
 #data = read_var('B_BIO_DON')
 #data = read_var('B_BIO_O2')
-data = read_var('B_NUT_Si')
+#data = read_var('B_NUT_Si')
 
 var_ice = data[0]
 var_water = data[1]
@@ -101,7 +101,7 @@ format_time = num2date(X_sed,units = time_units)
 X_sed = format_time
 
 #create a figure 
-fig = plt.figure(figsize=(8.3 , 8.27), dpi=100)
+fig = plt.figure(figsize=(8.3 , 6.), dpi=100)
 gs = gridspec.GridSpec(3, 1)
 
 #update the layout 
@@ -118,7 +118,7 @@ ax1.set_ylabel("Depth (m)", fontsize=14)
 ax2 = fig.add_subplot(gs[2]) # o2 sed
 ax2.set_ylabel("Depth (m)", fontsize=14)
 # set xaxis label  
-ax2.set_xlabel("Date")
+ax2.set_xlabel("Date", fontsize=14)
 
 #specify colormap
 cmap = 'terrain'
@@ -156,7 +156,7 @@ ax2.set_ylim(max_sed,min_sed)
 ax0.set_xticklabels([])    
 ax1.set_xticklabels([])     
 labels = ax2.get_xticklabels()
-plt.setp(labels,  size = 13) #rotation=30,
+#plt.setp(labels, rotation=30, size = 14) #rotation=30,
 
 if stop-start > 365:
     #ax1.xaxis_date()
@@ -166,9 +166,9 @@ else :
     ax2.xaxis.set_major_formatter(
         mdates.DateFormatter('%d/%m')) 
 #plt.rcParams.update({'font.size': 14})
-plt.show()    
+#plt.show()    
 
-#plt.savefig('ice_brom.pdf', format='pdf')
+plt.savefig('ice_brom.pdf', format='pdf')
 
 # Save in a vector format 
 #plt.savefig('ice_brom.eps', format='eps')
