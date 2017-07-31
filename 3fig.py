@@ -76,8 +76,8 @@ def read_var(name):
 #data = read_var('P1_Chl')
 #data = read_var('B_pH_pH')
 #data = read_var('B_BIO_DON')
-#data = read_var('B_BIO_O2')
-data = read_var('B_NUT_Si')
+data = read_var('B_BIO_O2')
+#data = read_var('B_NUT_Si')
 
 var_ice = data[0]
 var_water = data[1]
@@ -105,7 +105,7 @@ fig = plt.figure(figsize=(8.3 , 8.27), dpi=100)
 gs = gridspec.GridSpec(3, 1)
 
 #update the layout 
-gs.update(left=0.1, right= 1.03,top = 0.95,bottom = 0.1,
+gs.update(left=0.1, right= 0.95,top = 0.95,bottom = 0.1,
                    wspace=0.2,hspace=0.2)
 
 #add subplots
@@ -123,26 +123,52 @@ ax2.set_xlabel("Date")
 #specify colormap
 cmap = 'terrain'
 
-#min = ma.min(var_ice)
-#max = ma.max(var_ice)
-#var_levels = np.linspace(min,max,num = 20 )
+min = ma.min(var_ice)
+max = ma.max(var_ice)
+var_levels = np.linspace(min,max,num = 40 )
 
 #plot 2d figures 
-#CS1 = ax0.contourf(X,Y, var_ice,cmap = cmap) #,levels = var_levels)
+CS1 = ax0.contourf(X,Y, var_ice[:,start:stop],
+                   cmap = cmap,levels = var_levels)
+#CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap)
 
-CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap)
 ax0.set_title((name+' '+ str(data_units)))
+
+import matplotlib.ticker as ticker
+
+def fmt(x, pos):
+    a, b = '{:.2e}'.format(x).split('e')
+    b = int(b)
+    return r'${} \times 10^{{{}}}$'.format(a, b)
+
+#plt.colorbar(myplot, format=ticker.FuncFormatter(fmt))
+
 #add colorbar 
-plt.colorbar(CS1,ax = ax0,pad=0.02,aspect = 4)
+plt.colorbar(CS1,ax = ax0,pad=0.02,
+             aspect = 4,format=ticker.FuncFormatter(fmt))
 
-CS4 = ax1.pcolor(X_water,Y_water,var_water[:,start:stop], cmap = cmap)
+CS4 = ax1.contourf(X_water,Y_water, var_water[:,start:stop],
+                   cmap = cmap) 
+#CS4 = ax1.pcolor(X_water,Y_water,var_water[:,start:stop],
+#                  cmap = cmap)
+
+ax1.axhline(141.84, color='white', 
+            linestyle = '--',linewidth = 1 )
 ax1.set_title(name +' '+ str(data_units))
-plt.colorbar(CS4,ax = ax1,pad=0.02,aspect = 4)
 
 
-CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[:,start:stop], cmap = cmap)
+plt.colorbar(CS4,ax = ax1,pad=0.02,
+             aspect = 4, format=ticker.FuncFormatter(fmt))
+
+CS7 = ax2.contourf(X_sed,Y_sed, var_sed[:,start:stop],
+                   cmap = cmap) 
+#CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[:,start:stop], cmap = cmap)
+ax2.axhline(141.84, color='white', linestyle = '--',linewidth = 1 ) 
 ax2.set_title(name+' '+ str(data_units))
-plt.colorbar(CS7,ax = ax2,pad=0.02,aspect = 4)
+
+
+plt.colorbar(CS7,ax = ax2,pad=0.02,
+             aspect = 4,format=ticker.FuncFormatter(fmt))
 
 
 for axis in (ax0,ax1,ax2): 
@@ -165,6 +191,9 @@ if stop-start > 365:
 else : 
     ax2.xaxis.set_major_formatter(
         mdates.DateFormatter('%d/%m')) 
+    
+    
+    
 #plt.rcParams.update({'font.size': 14})
 plt.show()    
 
