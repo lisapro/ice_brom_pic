@@ -25,17 +25,23 @@ fh_water =  Dataset('/Users/Shamil/binary/brom+ersem/water.nc')
 fh_sediments =  Dataset('/Users/Shamil/binary/brom+ersem/sediments.nc')
 
 depth = fh.variables['z'][:] 
+depth_faces = fh.variables['z_faces'][:] 
+
+max_faces = max(depth_faces)
 
 min = min(depth)
 max = max(depth)
+
 depth_ice = (depth - max)*-3
+depth_ice_faces = np.array((depth_faces - max_faces)*-3)
+
 depth_ice = np.array(depth_ice)
 
-min_ice = np.amin(depth_ice)
-max_ice = np.amax(depth_ice)
+min_ice = np.amin(depth_ice_faces)
+max_ice = np.amax(depth_ice_faces)
 
-depth_water = np.array(fh_water.variables['z'][:]) 
-depth_sed = fh_sediments.variables['z'][:] 
+depth_water = np.array(fh_water.variables['z_faces'][:]) 
+depth_sed = fh_sediments.variables['z_faces'][:] 
 
 min_water = np.amin(depth_water)
 max_water = np.amax(depth_water)
@@ -49,10 +55,9 @@ max_sed = np.amax(depth_sed)
 start = 1447
 stop = 1811
 
-time = fh.variables['time']
-time_units = fh.variables['time'].units
+time = fh.variables['ocean_time']
+time_units = fh.variables['ocean_time'].units
 
-#print (time_f)
 
 def read_var(name):
     
@@ -71,12 +76,11 @@ def read_var(name):
 #  you want to plot       #
 ########################### 
 
- 
 
-#data = read_var('P1_Chl')
+data = read_var('P1_Chl')
 #data = read_var('B_pH_pH')
 #data = read_var('B_BIO_DON')
-data = read_var('B_BIO_O2')
+#data = read_var('B_BIO_O2')
 #data = read_var('B_NUT_Si')
 
 var_ice = data[0]
@@ -86,7 +90,7 @@ name = data[3]
 data_units = data[4]
 
 # interpolate data to plot                         
-X,Y = np.meshgrid(time[start:stop],depth_ice)
+X,Y = np.meshgrid(time[start:stop],depth_ice_faces)
 format_time = num2date(X,units = time_units)  
 start_f = num2date(time[start],units = time_units) 
 stop_f = num2date(time[stop],units = time_units) 
@@ -128,9 +132,10 @@ max = ma.max(var_ice)
 var_levels = np.linspace(min,max,num = 40 )
 
 #plot 2d figures 
-CS1 = ax0.contourf(X,Y, var_ice[:,start:stop],
-                   cmap = cmap,levels = var_levels)
-#CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap)
+#CS1 = ax0.contourf(X,Y, var_ice[:,start:stop],
+#                   cmap = cmap,levels = var_levels)
+#without interpolation 
+CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap)
 
 ax0.set_title((name+' '+ str(data_units)))
 
@@ -147,10 +152,10 @@ def fmt(x, pos):
 plt.colorbar(CS1,ax = ax0,pad=0.02,
              aspect = 4,format=ticker.FuncFormatter(fmt))
 
-CS4 = ax1.contourf(X_water,Y_water, var_water[:,start:stop],
-                   cmap = cmap) 
-#CS4 = ax1.pcolor(X_water,Y_water,var_water[:,start:stop],
-#                  cmap = cmap)
+#CS4 = ax1.contourf(X_water,Y_water, var_water[:,start:stop],
+#                   cmap = cmap) 
+CS4 = ax1.pcolor(X_water,Y_water,var_water[:,start:stop],
+                  cmap = cmap)
 
 ax1.axhline(141.84, color='white', 
             linestyle = '--',linewidth = 1 )
@@ -160,9 +165,9 @@ ax1.set_title(name +' '+ str(data_units))
 plt.colorbar(CS4,ax = ax1,pad=0.02,
              aspect = 4, format=ticker.FuncFormatter(fmt))
 
-CS7 = ax2.contourf(X_sed,Y_sed, var_sed[:,start:stop],
-                   cmap = cmap) 
-#CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[:,start:stop], cmap = cmap)
+#CS7 = ax2.contourf(X_sed,Y_sed, var_sed[:,start:stop],
+#                   cmap = cmap) 
+CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[:,start:stop], cmap = cmap)
 ax2.axhline(141.84, color='white', linestyle = '--',linewidth = 1 ) 
 ax2.set_title(name+' '+ str(data_units))
 
@@ -176,7 +181,7 @@ for axis in (ax0,ax1,ax2):
 
 ax1.set_ylim(max_water,min_water)
 ax2.set_ylim(max_sed,min_sed)  
-#ax0.set_xlim(start_f,stop_f)
+ax0.set_ylim(min_ice,max_ice)
 
 # hide horizontal axis labels 
 ax0.set_xticklabels([])    
@@ -184,19 +189,20 @@ ax1.set_xticklabels([])
 labels = ax2.get_xticklabels()
 #plt.setp(labels, rotation=30, size = 14) #rotation=30,
 
+
 if stop-start > 365:
     #ax1.xaxis_date()
     ax2.xaxis.set_major_formatter(
         mdates.DateFormatter('%m/%Y'))  
 else : 
     ax2.xaxis.set_major_formatter(
-        mdates.DateFormatter('%d/%m')) 
-    
+        mdates.DateFormatter('%b')) 
+  
     
     
 #plt.rcParams.update({'font.size': 14})
 plt.show()    
-plt.savefig('ice_brom_{}.pdf'.format(name), format='pdf')
+#plt.savefig('ice_brom_{}.pdf'.format(name), format='pdf')
 
 # Save in a vector format 
 #plt.savefig('ice_brom.eps', format='eps')
