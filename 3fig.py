@@ -11,6 +11,8 @@ from matplotlib import gridspec
 import numpy.ma as ma
 import matplotlib as mpl
 import matplotlib.dates as mdates
+import datetime 
+#from datetime import datetime, timedelta
 
 #plt.style.use('ggplot')
 #plt.style.use('bmh')
@@ -54,21 +56,29 @@ max_water = np.amax(depth_water)
 
 min_sed = np.amin(depth_sed)
 max_sed = np.amax(depth_sed)
-from datetime import datetime, timedelta
+
+
 #########################
 # Values for time axis  #
 #########################
 
 time = fh.variables['time']
+time2 = fh.variables['time'][:]
 time_units = fh.variables['time'].units
-#start= date2index(start_date, time, calendar= 'standard')
-                  #,
-                  #    select='exact') 
+format_time = num2date(time2,units = time_units,calendar= 'standard')
 
-#start = np.argwhere(time == start_x)
-start = 1447
-stop = 1500
-#stop = len(time)-1
+to_start = datetime.datetime(2005,1,1,12,0)
+to_stop= datetime.datetime(2014,1,1,12,0)
+#to_start = datetime.date(2014, 11, 4)
+
+#start = int(np.where(format_time == to_start)[0])
+
+
+start = date2index(to_start, time,#units = time_units,
+                    calendar=None, select='nearest')
+stop = date2index(to_stop, time,#units = time_units,
+                    calendar=None, select='nearest')
+
 
 def read_var(name):
     
@@ -111,51 +121,38 @@ data_units = data[4]
 
 # interpolate data to plot                         
 X,Y = np.meshgrid(time[start:stop],depth_ice_faces)
-format_time = num2date(X,units = time_units)  
+X  = num2date(X,units = time_units) #format_time  
 start_f = num2date(time[start],units = time_units) 
 stop_f = num2date(time[stop],units = time_units) 
-X = format_time
+#X = format_time
 
 X_water,Y_water = np.meshgrid(time[start:stop],depth_water)
-format_time = num2date(X_water,units = time_units)   
-X_water = format_time
+X_water = num2date(X_water,units = time_units)   
+#X_water = format_time
 
 X_sed, Y_sed = np.meshgrid(time[start:stop],depth_sed)
-format_time = num2date(X_sed,units = time_units)   
-X_sed = format_time
+X_sed = num2date(X_sed,units = time_units)   
+#X_sed = format_time
 
 #create a figure 
 fig = plt.figure(figsize=(8.3 ,4.4), dpi=100)
 gs = gridspec.GridSpec(3, 1)
-
-#update the layout 
-gs.update(left=0.1, right= 0.95,top = 0.95,bottom = 0.05,
+gs.update(left=0.15, right= 0.97,top = 0.95,bottom = 0.06,
                    wspace=0.2,hspace=0.2)
-
 #add subplots
 ax0 = fig.add_subplot(gs[0]) # o2 ice 
-ax0.set_ylabel("Ice thickness \n(cm)", fontsize=14)
-ax0.text(-0.07, 1.05, 'A', transform=ax0.transAxes, 
-            size=15, weight='bold')
-
 ax1 = fig.add_subplot(gs[1]) # o2 water
-ax1.set_ylabel("Depth \n(m)", fontsize=14)
-ax1.text(-0.07, 1.05, 'B', transform=ax1.transAxes, 
-            size=15, weight='bold')
-
 ax2 = fig.add_subplot(gs[2]) # o2 sed
-ax2.set_ylabel("Depth \n(m)", fontsize=14)
-ax2.text(-0.07, 1.05, 'C', transform=ax2.transAxes, 
-            size=15, weight='bold')
-# set xaxis label  
+
+
 #ax2.set_xlabel("Date", fontsize=14)
 
 #specify colormap
-cmap = plt.cm.terrain #'plasma' #'terrain'
-
+#cmap = plt.cm.terrain #'plasma' #'terrain'
+cmap = plt.get_cmap('viridis') 
 min = ma.min(var_ice)
 max = ma.max(var_ice)
-var_levels = np.linspace(min,max,num = 40 )
+#var_levels = np.linspace(min,max,num = 20 )
 
 #plot 2d figures 
 #CS1 = ax0.contourf(X,Y, var_ice[:,start:stop],
@@ -176,8 +173,8 @@ def fmt(x, pos):
 #plt.colorbar(myplot, format=ticker.FuncFormatter(fmt))
 
 #add colorbar 
-plt.colorbar(CS1,ax = ax0,pad=0.02,
-             aspect = 4,format=ticker.FuncFormatter(fmt))
+#cb0 = plt.colorbar(CS1,ax = ax0,pad=0.02,
+#             aspect = 4,format=ticker.FuncFormatter(fmt))
 
 #CS4 = ax1.contourf(X_water,Y_water, var_water[:,start:stop],
 #                   cmap = cmap) 
@@ -185,29 +182,45 @@ CS4 = ax1.pcolor(X_water,Y_water,var_water[:,start:stop],
                   cmap = cmap) #,edgecolor = 'w',
                  # linewidth = 0.000005)
 
-ax1.axhline(151.5, color='white', 
-            linestyle = '--',linewidth = 1 )
-#ax1.set_title(name +' '+ str(data_units))
-
-
-plt.colorbar(CS4,ax = ax1,pad=0.02,
-             aspect = 4, format=ticker.FuncFormatter(fmt))
-
 #CS7 = ax2.contourf(X_sed,Y_sed, var_sed[:,start:stop],
 #                   cmap = cmap) 
 CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[:,start:stop], cmap = cmap) #,edgecolor = 'w',
                 # linewidth = 0.000005)
-ax2.axhline(151.53, color='w', linestyle = '--',linewidth = 1 ) 
-#ax2.set_title(name+' '+ str(data_units))
+
+ax2.axhline(max_water, color='w', linestyle = '--',linewidth = 1 ) 
+
+from dateutil.relativedelta import relativedelta
+if (stop-start)>= 367:
+    dt =  int((stop - start)/365) #number of years
+    time_ticks = []
+    for n in range(0,dt+1):
+        time_ticks.append(
+            format_time[start]+relativedelta(years = n))
 
 
-plt.colorbar(CS7,ax = ax2,pad=0.02,
-             aspect = 4,format=ticker.FuncFormatter(fmt))
+def add_colorbar(CS,axis):
+    cb = plt.colorbar(CS,ax = axis,pad=0.02,
+             aspect = 4,format=ticker.FuncFormatter(fmt)) 
+    return cb
 
+cb0 = add_colorbar(CS1,ax0)
+cb1 = add_colorbar(CS4,ax1)
+cb2 = add_colorbar(CS7,ax2)
+
+letters = ['A','B','C']
+labels = ["Ice thickness \n(cm)", "Depth \n(m)","Depth \n(m)" ]
+n = 0
 
 for axis in (ax0,ax1,ax2): 
-    axis.yaxis.set_label_coords(-0.06, 0.6)
-
+    try:
+        axis.set_xticks(time_ticks)
+    except: NameError
+    axis.yaxis.set_label_coords(-0.1, 0.6)
+    axis.text(-0.085, 0.9, letters[n], transform=axis.transAxes, 
+            size=15, weight='bold')
+    axis.set_ylabel(labels[n], fontsize=14 )
+    n=n+1
+    
 ax1.set_ylim(max_water,min_water)
 ax2.set_ylim(max_sed,min_sed)  
 ax0.set_ylim(min_ice,max_ice)
@@ -215,14 +228,16 @@ ax0.set_ylim(min_ice,max_ice)
 # hide horizontal axis labels 
 ax0.set_xticklabels([])    
 ax1.set_xticklabels([])     
-labels = ax2.get_xticklabels()
-#plt.setp(labels, rotation=30, size = 14) #rotation=30,
 
 
-if stop-start > 365:
-    #ax1.xaxis_date()
+     
+if (stop-start)>= 365*6:
     ax2.xaxis.set_major_formatter(
-        mdates.DateFormatter('%m/%Y'))  
+        mdates.DateFormatter('%Y')) 
+    #ticks = np.arange(time[start:stop],time[start:stop],50)
+elif (stop-start) > 367 and (stop-start) < 365*6:
+    ax2.xaxis.set_major_formatter(
+        mdates.DateFormatter('%m/%Y'))   
 else : 
     ax2.xaxis.set_major_formatter(
         mdates.DateFormatter('%b')) 
