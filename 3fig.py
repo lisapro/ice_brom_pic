@@ -4,7 +4,7 @@ Created on 28. jun. 2017
 @author: ELP
 '''
 
-from netCDF4 import Dataset,num2date
+from netCDF4 import Dataset,num2date,date2num,date2index
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
@@ -15,14 +15,20 @@ import matplotlib.dates as mdates
 #plt.style.use('ggplot')
 #plt.style.use('bmh')
 # Here you can change the filenames 
+laptev = False #True
+kara = True #False 
 
 #fh =  Dataset("ice_year.nc")
 #fh_water = Dataset("water_year.nc")
 #fh_sediments = Dataset("sediments_year.nc")
-
-fh =  Dataset('/Users/Shamil/binary/brom+ersem/ice.nc')
-fh_water =  Dataset('/Users/Shamil/binary/brom+ersem/water.nc')
-fh_sediments =  Dataset('/Users/Shamil/binary/brom+ersem/sediments.nc')
+if laptev:
+    fh =  Dataset('/Users/Shamil/binary/brom+ersem_laptev/ice.nc')
+    fh_water =  Dataset('/Users/Shamil/binary/brom+ersem_laptev/water.nc')
+    fh_sediments =  Dataset('/Users/Shamil/binary/brom+ersem_laptev/sediments.nc')
+if kara:
+    fh =  Dataset('/Users/Shamil/binary/test/ice.nc')
+    fh_water =  Dataset('/Users/Shamil/binary/test/water.nc') 
+    fh_sediments =  Dataset('/Users/Shamil/binary/test/sediments.nc')
 
 depth = fh.variables['z'][:] 
 depth_faces = fh.variables['z_faces'][:] 
@@ -48,16 +54,21 @@ max_water = np.amax(depth_water)
 
 min_sed = np.amin(depth_sed)
 max_sed = np.amax(depth_sed)
-
+from datetime import datetime, timedelta
 #########################
 # Values for time axis  #
 #########################
+
+time = fh.variables['time']
+time_units = fh.variables['time'].units
+#start= date2index(start_date, time, calendar= 'standard')
+                  #,
+                  #    select='exact') 
+
+#start = np.argwhere(time == start_x)
 start = 1447
-stop = 1811
-
-time = fh.variables['ocean_time']
-time_units = fh.variables['ocean_time'].units
-
+stop = 1500
+#stop = len(time)-1
 
 def read_var(name):
     
@@ -75,11 +86,20 @@ def read_var(name):
 #  to change the variable #
 #  you want to plot       #
 ########################### 
-
-
+#data = read_var('sal')
+#data = read_var('temp')
 data = read_var('P1_Chl')
 #data = read_var('B_pH_pH')
 #data = read_var('B_BIO_DON')
+#data = read_var('P1_fO3PIc')
+#data = read_var('P4_Chl')
+#data = read_var('B_pH_pH')
+#data = read_var('B_BIO_DON')
+#data = read_var('B_BIO_O2')
+#data = read_var('B_NUT_Si')
+#data = read_var('temp')
+#data = read_var('Kz_s')
+#data = read_var('downwelling_photosynthetic_radiative_flux')
 #data = read_var('B_BIO_O2')
 #data = read_var('B_NUT_Si')
 
@@ -105,27 +125,33 @@ format_time = num2date(X_sed,units = time_units)
 X_sed = format_time
 
 #create a figure 
-fig = plt.figure(figsize=(8.3 , 6.), dpi=100)
+fig = plt.figure(figsize=(8.3 ,4.4), dpi=100)
 gs = gridspec.GridSpec(3, 1)
 
 #update the layout 
-gs.update(left=0.1, right= 0.95,top = 0.95,bottom = 0.1,
+gs.update(left=0.1, right= 0.95,top = 0.95,bottom = 0.05,
                    wspace=0.2,hspace=0.2)
 
 #add subplots
 ax0 = fig.add_subplot(gs[0]) # o2 ice 
-ax0.set_ylabel("Ice thickness (cm)", fontsize=14)
+ax0.set_ylabel("Ice thickness \n(cm)", fontsize=14)
+ax0.text(-0.07, 1.05, 'A', transform=ax0.transAxes, 
+            size=15, weight='bold')
 
 ax1 = fig.add_subplot(gs[1]) # o2 water
-ax1.set_ylabel("Depth (m)", fontsize=14)
+ax1.set_ylabel("Depth \n(m)", fontsize=14)
+ax1.text(-0.07, 1.05, 'B', transform=ax1.transAxes, 
+            size=15, weight='bold')
 
 ax2 = fig.add_subplot(gs[2]) # o2 sed
-ax2.set_ylabel("Depth (m)", fontsize=14)
+ax2.set_ylabel("Depth \n(m)", fontsize=14)
+ax2.text(-0.07, 1.05, 'C', transform=ax2.transAxes, 
+            size=15, weight='bold')
 # set xaxis label  
-ax2.set_xlabel("Date", fontsize=14)
+#ax2.set_xlabel("Date", fontsize=14)
 
 #specify colormap
-cmap = 'terrain'
+cmap = plt.cm.terrain #'plasma' #'terrain'
 
 min = ma.min(var_ice)
 max = ma.max(var_ice)
@@ -135,7 +161,8 @@ var_levels = np.linspace(min,max,num = 40 )
 #CS1 = ax0.contourf(X,Y, var_ice[:,start:stop],
 #                   cmap = cmap,levels = var_levels)
 #without interpolation 
-CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap)
+CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap )#) 3,edgecolor = 'w',
+                 #linewidth = 0.000005)
 
 ax0.set_title((name+' '+ str(data_units)))
 
@@ -155,11 +182,12 @@ plt.colorbar(CS1,ax = ax0,pad=0.02,
 #CS4 = ax1.contourf(X_water,Y_water, var_water[:,start:stop],
 #                   cmap = cmap) 
 CS4 = ax1.pcolor(X_water,Y_water,var_water[:,start:stop],
-                  cmap = cmap)
+                  cmap = cmap) #,edgecolor = 'w',
+                 # linewidth = 0.000005)
 
-ax1.axhline(141.84, color='white', 
+ax1.axhline(151.5, color='white', 
             linestyle = '--',linewidth = 1 )
-ax1.set_title(name +' '+ str(data_units))
+#ax1.set_title(name +' '+ str(data_units))
 
 
 plt.colorbar(CS4,ax = ax1,pad=0.02,
@@ -167,9 +195,10 @@ plt.colorbar(CS4,ax = ax1,pad=0.02,
 
 #CS7 = ax2.contourf(X_sed,Y_sed, var_sed[:,start:stop],
 #                   cmap = cmap) 
-CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[:,start:stop], cmap = cmap)
-ax2.axhline(141.84, color='white', linestyle = '--',linewidth = 1 ) 
-ax2.set_title(name+' '+ str(data_units))
+CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[:,start:stop], cmap = cmap) #,edgecolor = 'w',
+                # linewidth = 0.000005)
+ax2.axhline(151.53, color='w', linestyle = '--',linewidth = 1 ) 
+#ax2.set_title(name+' '+ str(data_units))
 
 
 plt.colorbar(CS7,ax = ax2,pad=0.02,
@@ -197,12 +226,11 @@ if stop-start > 365:
 else : 
     ax2.xaxis.set_major_formatter(
         mdates.DateFormatter('%b')) 
-  
-    
-    
+      
 #plt.rcParams.update({'font.size': 14})
 plt.show()    
+#plt.savefig('ice_brom_{}.png'.format(name),transparent = True)
 #plt.savefig('ice_brom_{}.pdf'.format(name), format='pdf')
 
 # Save in a vector format 
-#plt.savefig('ice_brom.eps', format='eps')
+#plt.savefig('ice_brom_{}.eps'.format(name), format='eps')
