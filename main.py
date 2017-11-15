@@ -47,17 +47,28 @@ class Window(QtWidgets.QDialog):
         elif open: '''
    
         directory =  self.load_work_directory() 
-        ice_fname = os.path.join(directory,'ice.nc')
-        water_fname = os.path.join(directory,'water.nc')
-        sediments_fname = os.path.join(directory,'sediments.nc')
+        self.ice_fname = os.path.abspath(os.path.join(directory,'ice.nc')) 
+
+        self.water_fname = os.path.join(directory,'water.nc')
+        self.sediments_fname = os.path.join(directory,'sediments.nc')
         
-        self.fh_ice =  Dataset(ice_fname)   
-        self.fh_water =  Dataset(water_fname) 
-        self.fh_sediments =  Dataset(sediments_fname)   
-         
+        self.fh_ice =  Dataset(self.ice_fname)   
+
+        
+
+        
+        
+        self.time = self.fh_ice.variables['time'][:]
+        units = self.fh_ice.variables['time'].units        
+        self.format_time = num2date(self.time,units = units,
+                                    calendar= 'standard')       
+        first_year = self.format_time[0].year
+        last_year = self.format_time[-1].year
         self.names_vars = [] 
         for names,vars in self.fh_ice.variables.items():
             self.names_vars.append(names)          
+
+
             
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
                                         QtWidgets.QSizePolicy.Expanding)
@@ -68,16 +79,31 @@ class Window(QtWidgets.QDialog):
         
         self.button = QtWidgets.QPushButton('Plot')
         self.save_button = QtWidgets.QPushButton('Plot and Save_pdf')
-        self.label_choose_var = QtWidgets.QLabel('Choose variable:')  
+        self.label_choose_var = QtWidgets.QLabel('Choose variable:')
+          
+        self.label_start_year = QtWidgets.QLabel('Start year:') 
+        self.combobox_start_year = QtWidgets.QSpinBox()    
+        self.combobox_start_year.setRange(first_year, last_year-1)                 
+        self.label_stop_year = QtWidgets.QLabel('Stop year:')   
+        self.combobox_stop_year = QtWidgets.QSpinBox() 
+        self.combobox_stop_year.setRange(first_year+1, last_year)                        
         self.qlist_widget = QtWidgets.QListWidget()        
         self.qlist_widget.addItems(self.names_vars)
         
         
         layout = QtWidgets.QGridLayout()
-        layout.addWidget(self.button,0,0,1,1) 
-        layout.addWidget(self.save_button,0,1,1,1)
-        layout.addWidget(self.qlist_widget,1,0,1,1)   
-        layout.addWidget(self.canvas,1,1,1,4)                                
+
+        layout.addWidget(self.label_choose_var,0,0,1,1)                 
+        layout.addWidget(self.button,0,1,1,1)         
+        layout.addWidget(self.save_button,0,2,1,1)
+        layout.addWidget(self.label_start_year,0,3,1,1)
+        layout.addWidget(self.combobox_start_year,0,4,1,1)        
+        layout.addWidget(self.label_stop_year,0,5,1,1)
+        layout.addWidget(self.combobox_stop_year,0,6,1,1)                
+                        
+        layout.addWidget(self.qlist_widget,1,0,1,1)      
+        layout.addWidget(self.canvas,1,1,1,6)    
+                                    
         self.setLayout(layout)        
         self.button.released.connect(self.call_show_3fig)  
         self.save_button.released.connect(self.call_save_3fig) 
@@ -97,127 +123,114 @@ class Window(QtWidgets.QDialog):
         self.plot_3fig()
         
     def read_var(self):
-        print ('readvar')  
+
         self.name =  str(self.qlist_widget.currentItem().text())
-        print (self.name) 
         var_ice_nonmasked = np.array(self.fh_ice.variables[self.name][:]).T 
         var_ice =  ma.masked_invalid (var_ice_nonmasked)
         var_water = np.array(self.fh_water.variables[self.name][:]).T 
         var_sediments = np.array(self.fh_sediments.variables[self.name][:]).T 
         data_units = self.fh_ice.variables[self.name].units
-        self.fh_ice.close()
-        self.fh_water.close()
-        self.fh_sediments.close()
+
                     
         return var_ice,var_water,var_sediments,data_units
             
     def plot_3fig(self): 
-        print (self.action) 
-        print ('relased')                
-        depth = self.fh_ice.variables['z'][:] 
-        depth_faces = self.fh_ice.variables['z_faces'][:] 
+       
+        plt.clf() 
+             
+        self.fh_ice =  Dataset(self.ice_fname)  
+        self.fh_water =  Dataset(self.water_fname)  
+        self.fh_sediments =  Dataset(self.sediments_fname) 
+                    
+        self.time = self.fh_ice.variables['time']
+
+        self.depth = self.fh_ice.variables['z'][:] 
+        self.depth_faces = self.fh_ice.variables['z_faces'][:] 
+           
+        self.max_faces = np.max(self.depth_faces)
         
-        max_faces = np.max(depth_faces)
+        self.min_ice = np.min(self.depth)
+        self.max_ice = np.max(self.depth)
         
-        min_ice = np.min(depth)
-        max_ice = np.max(depth)
+        self.depth_ice = (self.depth - self.max_ice)*-3
+        self.depth_ice_faces = np.array((self.depth_faces - self.max_faces)*-3)
         
-        depth_ice = (depth - max_ice)*-3
-        depth_ice_faces = np.array((depth_faces - max_faces)*-3)
+        self.depth_ice = np.array(self.depth_ice)
         
-        depth_ice = np.array(depth_ice)
+        self.min_ice = np.amin(self.depth_ice_faces)
+        self.max_ice = np.amax(self.depth_ice_faces)
         
-        min_ice = np.amin(depth_ice_faces)
-        max_ice = np.amax(depth_ice_faces)
+        self.depth_water = np.array(self.fh_water.variables['z_faces'][:]) 
+        self.depth_sed = self.fh_sediments.variables['z_faces'][:] 
         
-        depth_water = np.array(self.fh_water.variables['z_faces'][:]) 
-        depth_sed = self.fh_sediments.variables['z_faces'][:] 
+        self.min_water = np.amin(self.depth_water)
+        self.max_water = np.amax(self.depth_water)
         
-        min_water = np.amin(depth_water)
-        max_water = np.amax(depth_water)
+        self.min_sed = np.amin(self.depth_sed)
+        self.max_sed = np.amax(self.depth_sed)
         
-        min_sed = np.amin(depth_sed)
-        max_sed = np.amax(depth_sed)
-        
+        self.time2 = self.fh_ice.variables['time'][:]
+    
+        self.time_units = self.fh_ice.variables['time'].units
+
+        self.format_time = num2date(self.time2,units = self.time_units,calendar= 'standard')
+         
+               
         
         #########################
         # Values for time axis  #
         #########################
         
-        time = self.fh_ice.variables['time']
-        #print (time)
-        time2 = self.fh_ice.variables['time'][:]
-        time_units = self.fh_ice.variables['time'].units
-        format_time = num2date(time2,units = time_units,calendar= 'standard')
         
-        to_start = datetime.datetime(2005,1,1,12,0)
-        to_stop= datetime.datetime(2005,2,1,12,0)
+        start_year = self.combobox_start_year.value()
+        stop_year = self.combobox_stop_year.value()
+        
+        to_start = datetime.datetime(start_year,1,1,12,0)
+        to_stop= datetime.datetime(stop_year,1,1,12,0)
         #to_start = datetime.date(2014, 11, 4)
         
         #start = int(np.where(format_time == to_start)[0])
         
         
-        start = date2index(to_start, time,#units = time_units,
+        start = date2index(to_start, self.time,#units = time_units,
                             calendar=None, select='nearest')
-        stop = date2index(to_stop, time,#units = time_units,
+        stop = date2index(to_stop, self.time,#units = time_units,
                             calendar=None, select='nearest')
-        
+
 
         data = self.read_var()
-        
+        #self.fh_ice.close()         
         var_ice = data[0]
         var_water = data[1]
         var_sed = data[2]
         data_units = data[3]
-        
-        print(time2[start:stop])     
-                         
-        X,Y = np.meshgrid(time2[start:stop],depth_ice_faces)
-        X  = num2date(X,units = time_units) #format_time  
-        start_f = num2date(time2[start],units = time_units) 
-        stop_f = num2date(time2[stop],units = time_units) 
+                                 
+        X,Y = np.meshgrid(self.time2[start:stop],self.depth_ice_faces)
+        X  = num2date(X,units = self.time_units) #format_time  
+        start_f = num2date(self.time2[start],units = self.time_units) 
+        stop_f = num2date(self.time2[stop],units = self.time_units) 
         #X = format_time
         
-        X_water,Y_water = np.meshgrid(time2[start:stop],depth_water)
-        X_water = num2date(X_water,units = time_units)   
+        X_water,Y_water = np.meshgrid(self.time2[start:stop],self.depth_water)
+        X_water = num2date(X_water,units = self.time_units)   
         #X_water = format_time
         
-        X_sed, Y_sed = np.meshgrid(time2[start:stop],depth_sed)
-        X_sed = num2date(X_sed,units = time_units)   
+        X_sed, Y_sed = np.meshgrid(self.time2[start:stop],self.depth_sed)
+        X_sed = num2date(X_sed,units = self.time_units)   
         #X_sed = format_time
+        self.fh_ice.close()
+        self.fh_water.close()
+        self.fh_sediments.close()          
         
-        #create a figure 
-        #fig = plt.figure(figsize=(8.3 ,4.4), dpi=100)
         gs = gridspec.GridSpec(3, 1)
         gs.update(left=0.15, right= 0.97,top = 0.95,bottom = 0.06,
                            wspace=0.2,hspace=0.2)
-        print ('gs')  
+      
         #add subplots
         ax0 = self.figure.add_subplot(gs[0]) # o2 ice 
         ax1 = self.figure.add_subplot(gs[1]) # o2 water
         ax2 = self.figure.add_subplot(gs[2]) # o2 sed
-        ###########################
-        #  it's a place for you   #
-        #  to change the variable #
-        #  you want to plot       #
-        ########################### 
-        #data = read_var('sal')
-        #data = read_var('temp')
-        #data = read_var('P1_Chl')
-        #data = read_var('B_pH_pH')
-        #data = read_var('B_BIO_DON')
-        #data = read_var('P1_fO3PIc')
-        #data = read_var('P4_Chl')
-        #data = read_var('B_pH_pH')
-        #data = read_var('B_BIO_DON')
 
-        #data = read_var('B_BIO_O2')
-        #data = read_var('B_NUT_Si')
-        #data = read_var('temp')
-        #data = read_var('Kz_s')
-        #data = read_var('downwelling_photosynthetic_radiative_flux')
-        #data = read_var('B_BIO_O2')
-        #data = read_var('B_NUT_Si')
         # interpolate data to plot            
         
         #ax2.set_xlabel("Date", fontsize=14)
@@ -227,8 +240,9 @@ class Window(QtWidgets.QDialog):
         cmap = plt.get_cmap('viridis') 
         min = ma.min(var_ice)
         max = ma.max(var_ice)
+        #print (max,min)
         #var_levels = np.linspace(min,max,num = 20 )
-        print ('pcolor')
+
         #plot 2d figures 
         #CS1 = ax0.contourf(X,Y, var_ice[:,start:stop],
         #                   cmap = cmap,levels = var_levels)
@@ -239,7 +253,7 @@ class Window(QtWidgets.QDialog):
         ax0.set_title((self.name+' '+ str(data_units)))
         
         import matplotlib.ticker as ticker
-        print ('fmt')
+
         def fmt(x, pos):
             a, b = '{:.2e}'.format(x).split('e')
             b = int(b)
@@ -262,15 +276,15 @@ class Window(QtWidgets.QDialog):
         CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[:,start:stop], cmap = cmap) #,edgecolor = 'w',
                         # linewidth = 0.000005)
         
-        ax2.axhline(max_water, color='w', linestyle = '--',linewidth = 1 ) 
-        print ('axhline')
+        ax2.axhline(self.max_water, color='w', linestyle = '--',linewidth = 1 ) 
+
         from dateutil.relativedelta import relativedelta
         if (stop-start)>= 367:
             dt =  int((stop - start)/365) #number of years
             time_ticks = []
             for n in range(0,dt+1):
                 time_ticks.append(
-                    format_time[start]+relativedelta(years = n))
+                    self.format_time[start]+relativedelta(years = n))
         
         
         def add_colorbar(CS,axis):
@@ -295,10 +309,10 @@ class Window(QtWidgets.QDialog):
                     size=15, weight='bold')
             axis.set_ylabel(labels[n], fontsize=14 )
             n=n+1
-        print ('ylim')    
-        ax1.set_ylim(max_water,min_water)
-        ax2.set_ylim(max_sed,min_sed)  
-        ax0.set_ylim(min_ice,max_ice)
+ 
+        ax1.set_ylim(self.max_water,self.min_water)
+        ax2.set_ylim(self.max_sed,self.min_sed)  
+        ax0.set_ylim(self.min_ice,self.max_ice)
         
         # hide horizontal axis labels 
         ax0.set_xticklabels([])    
@@ -318,7 +332,7 @@ class Window(QtWidgets.QDialog):
                 mdates.DateFormatter('%b'))
               
         #plt.rcParams.update({'font.size': 14})
-        print ('canvas')
+
 
         if self.action == 'showfigure' : 
         #    print ("show figure")
