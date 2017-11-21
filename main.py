@@ -130,7 +130,9 @@ class Window(QtWidgets.QDialog):
         var_water = np.array(self.fh_water.variables[self.name][:]).T 
         var_sediments = np.array(self.fh_sediments.variables[self.name][:]).T 
         data_units = self.fh_ice.variables[self.name].units
-        #self.change_title.setText(self.name+' '+data_units)                    
+        print (len(self.change_title.text()))
+        if len(self.change_title.text()) < 1: 
+            self.change_title.setText(self.name+' '+ data_units)                    
         return var_ice,var_water,var_sediments,data_units
             
     def plot_3fig(self): 
