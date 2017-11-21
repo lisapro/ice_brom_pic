@@ -73,7 +73,8 @@ class Window(QtWidgets.QDialog):
         #self.label_choose_var = QtWidgets.QLabel('Choose variable:')
         
         self.change_title = QtWidgets.QLineEdit()
-        self.checkbox_title = QtWidgets.QCheckBox('Change title')
+        self.symbols = QtWidgets.QLineEdit('Symbols: # \ $ / & % {} ^ *')
+        self.checkbox_title = QtWidgets.QCheckBox('Change title (lateX)')
         
         self.label_start_year = QtWidgets.QLabel('Start year:') 
         self.combobox_start_year = QtWidgets.QSpinBox()    
@@ -88,18 +89,20 @@ class Window(QtWidgets.QDialog):
         layout = QtWidgets.QGridLayout()
 
         #layout.addWidget(self.label_choose_var,0,0,1,1)
-        layout.addWidget(self.checkbox_title,0,1,1,1)
-        layout.addWidget(self.change_title,0,0,1,1)
+        layout.addWidget(self.checkbox_title,0,0,1,1)
+        layout.addWidget(self.symbols,0,2,1,1)
+         
+        layout.addWidget(self.change_title,0,1,1,1)
                          
-        layout.addWidget(self.button,0,2,1,1)         
-        layout.addWidget(self.save_button,0,3,1,1)
-        layout.addWidget(self.label_start_year,0,4,1,1)
-        layout.addWidget(self.combobox_start_year,0,5,1,1)        
-        layout.addWidget(self.label_stop_year,0,6,1,1)
-        layout.addWidget(self.combobox_stop_year,0,7,1,1)                
+        layout.addWidget(self.button,0,3,1,1)         
+        layout.addWidget(self.save_button,0,4,1,1)
+        layout.addWidget(self.label_start_year,0,5,1,1)
+        layout.addWidget(self.combobox_start_year,0,6,1,1)        
+        layout.addWidget(self.label_stop_year,0,7,1,1)
+        layout.addWidget(self.combobox_stop_year,0,8,1,1)                
                         
         layout.addWidget(self.qlist_widget,1,0,1,1)      
-        layout.addWidget(self.canvas,1,1,1,6)    
+        layout.addWidget(self.canvas,1,1,1,8)    
                                     
         self.setLayout(layout)        
         self.button.released.connect(self.call_show_3fig)  
@@ -130,7 +133,6 @@ class Window(QtWidgets.QDialog):
         var_water = np.array(self.fh_water.variables[self.name][:]).T 
         var_sediments = np.array(self.fh_sediments.variables[self.name][:]).T 
         data_units = self.fh_ice.variables[self.name].units
-        print (len(self.change_title.text()))
         if len(self.change_title.text()) < 1: 
             self.change_title.setText(self.name+' '+ data_units)                    
         return var_ice,var_water,var_sediments,data_units
@@ -258,7 +260,7 @@ class Window(QtWidgets.QDialog):
                 
         if self.checkbox_title.isChecked() == True:
             title = self.change_title.text()
-            ax0.set_title(str(title))
+            ax0.set_title(r"${}$".format(title))
         else:                 
             ax0.set_title((self.name+' '+ str(data_units)))
 
