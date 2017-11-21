@@ -74,7 +74,7 @@ class Window(QtWidgets.QDialog):
         
         self.change_title = QtWidgets.QLineEdit()
         self.symbols = QtWidgets.QLineEdit('Symbols: # \ $ / & % {} ^ *')
-        self.checkbox_title = QtWidgets.QCheckBox('Change title (lateX)')
+        self.checkbox_title = QtWidgets.QCheckBox('Change title ')
         
         self.label_start_year = QtWidgets.QLabel('Start year:') 
         self.combobox_start_year = QtWidgets.QSpinBox()    
@@ -260,7 +260,7 @@ class Window(QtWidgets.QDialog):
                 
         if self.checkbox_title.isChecked() == True:
             title = self.change_title.text()
-            ax0.set_title(r"${}$".format(title))
+            ax0.set_title(title)
         else:                 
             ax0.set_title((self.name+' '+ str(data_units)))
 
