@@ -70,8 +70,11 @@ class Window(QtWidgets.QDialog):
         
         self.button = QtWidgets.QPushButton('Plot')
         self.save_button = QtWidgets.QPushButton('Plot and Save_pdf')
-        self.label_choose_var = QtWidgets.QLabel('Choose variable:')
-          
+        #self.label_choose_var = QtWidgets.QLabel('Choose variable:')
+        
+        self.change_title = QtWidgets.QLineEdit()
+        self.checkbox_title = QtWidgets.QCheckBox('Change title')
+        
         self.label_start_year = QtWidgets.QLabel('Start year:') 
         self.combobox_start_year = QtWidgets.QSpinBox()    
         self.combobox_start_year.setRange(first_year, last_year-1)                 
@@ -84,13 +87,16 @@ class Window(QtWidgets.QDialog):
         
         layout = QtWidgets.QGridLayout()
 
-        layout.addWidget(self.label_choose_var,0,0,1,1)                 
-        layout.addWidget(self.button,0,1,1,1)         
-        layout.addWidget(self.save_button,0,2,1,1)
-        layout.addWidget(self.label_start_year,0,3,1,1)
-        layout.addWidget(self.combobox_start_year,0,4,1,1)        
-        layout.addWidget(self.label_stop_year,0,5,1,1)
-        layout.addWidget(self.combobox_stop_year,0,6,1,1)                
+        #layout.addWidget(self.label_choose_var,0,0,1,1)
+        layout.addWidget(self.checkbox_title,0,1,1,1)
+        layout.addWidget(self.change_title,0,0,1,1)
+                         
+        layout.addWidget(self.button,0,2,1,1)         
+        layout.addWidget(self.save_button,0,3,1,1)
+        layout.addWidget(self.label_start_year,0,4,1,1)
+        layout.addWidget(self.combobox_start_year,0,5,1,1)        
+        layout.addWidget(self.label_stop_year,0,6,1,1)
+        layout.addWidget(self.combobox_stop_year,0,7,1,1)                
                         
         layout.addWidget(self.qlist_widget,1,0,1,1)      
         layout.addWidget(self.canvas,1,1,1,6)    
@@ -116,6 +122,7 @@ class Window(QtWidgets.QDialog):
     def read_var(self):
 
         self.name =  str(self.qlist_widget.currentItem().text())
+
         self.long_name = self.fh_ice.variables[str(self.name)].long_name
         self.setWindowTitle(str(self.long_name)) 
         var_ice_nonmasked = np.array(self.fh_ice.variables[self.name][:]).T 
@@ -123,7 +130,7 @@ class Window(QtWidgets.QDialog):
         var_water = np.array(self.fh_water.variables[self.name][:]).T 
         var_sediments = np.array(self.fh_sediments.variables[self.name][:]).T 
         data_units = self.fh_ice.variables[self.name].units
-                    
+        #self.change_title.setText(self.name+' '+data_units)                    
         return var_ice,var_water,var_sediments,data_units
             
     def plot_3fig(self): 
@@ -144,8 +151,9 @@ class Window(QtWidgets.QDialog):
         self.min_ice = np.min(self.depth)
         self.max_ice = np.max(self.depth)
         
-        self.depth_ice = (self.depth - self.max_ice)*-3
-        self.depth_ice_faces = np.array((self.depth_faces - self.max_faces)*-3)
+        ice_res = 6
+        self.depth_ice = (self.depth - self.max_ice)*-ice_res
+        self.depth_ice_faces = np.array((self.depth_faces - self.max_faces)*-ice_res)
         
         self.depth_ice = np.array(self.depth_ice)
         
@@ -190,6 +198,8 @@ class Window(QtWidgets.QDialog):
                             calendar=None, select='nearest')
 
         data = self.read_var()
+
+        
         #self.fh_ice.close()         
         var_ice = data[0]
         var_water = data[1]
@@ -232,7 +242,7 @@ class Window(QtWidgets.QDialog):
         cmap = plt.get_cmap('viridis') 
         min = ma.min(var_water)
         max = ma.max(var_water)
-        print (ma.min(var_ice), ma.min(var_water),ma.min(var_sed))        
+        #print (ma.min(var_ice), ma.min(var_water),ma.min(var_sed))        
 
         #var_levels = np.linspace(min,max,num = 20 )
 
@@ -243,8 +253,14 @@ class Window(QtWidgets.QDialog):
         CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap )#) 3,edgecolor = 'w',
                          #linewidth = 0.000005)
         
-        ax0.set_title((self.name+' '+ str(data_units)))
-  
+                
+        if self.checkbox_title.isChecked() == True:
+            title = self.change_title.text()
+            ax0.set_title(str(title))
+        else:                 
+            ax0.set_title((self.name+' '+ str(data_units)))
+
+            
         import matplotlib.ticker as ticker
 
         def fmt(x, pos):
