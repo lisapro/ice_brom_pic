@@ -20,10 +20,7 @@ root = tk.Tk()
 root.withdraw()
 #plt.style.use('ggplot')
 #plt.style.use('bmh')
-# Here you can change the filenames 
-laptev = False #True
-kara = False #False 
-open = True
+
 import sys
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas)
@@ -35,17 +32,6 @@ class Window(QtWidgets.QDialog):
         self.figure = plt.figure(figsize=(8.3 ,4.4), dpi=100,
                         facecolor='None',edgecolor='None')        
         self.canvas = FigureCanvas(self.figure)         
-        '''
-        if laptev:
-            fh =  Dataset('/Users/Shamil/binary/brom+ersem_laptev/ice.nc')
-            fh_water =  Dataset('/Users/Shamil/binary/brom+ersem_laptev/water.nc')
-            fh_sediments =  Dataset('/Users/Shamil/binary/brom+ersem_laptev/sediments.nc')
-        elif kara:
-            fh =  Dataset('/Users/Shamil/binary/test/ice.nc')
-            fh_water =  Dataset('/Users/Shamil/binary/test/water.nc') 
-            fh_sediments =  Dataset('/Users/Shamil/binary/test/sediments.nc')
-        elif open: '''
-   
         directory =  self.load_work_directory() 
         self.ice_fname = os.path.abspath(os.path.join(directory,'ice.nc')) 
 
@@ -53,23 +39,25 @@ class Window(QtWidgets.QDialog):
         self.sediments_fname = os.path.join(directory,'sediments.nc')
         
         self.fh_ice =  Dataset(self.ice_fname)   
-
-        
-
-        
         
         self.time = self.fh_ice.variables['time'][:]
         units = self.fh_ice.variables['time'].units        
         self.format_time = num2date(self.time,units = units,
-                                    calendar= 'standard')       
+                                    calendar= 'standard')   
+            
         first_year = self.format_time[0].year
         last_year = self.format_time[-1].year
+        
+        self.fontsize = 12
+        
+        
         self.names_vars = [] 
         for names,vars in self.fh_ice.variables.items():
-            self.names_vars.append(names)          
-
-
+            self.names_vars.append(names)
             
+                     
+        self.names_vars =  sorted(self.names_vars, key=lambda s: s.lower())  
+               
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
                                         QtWidgets.QSizePolicy.Expanding)
         
@@ -125,12 +113,13 @@ class Window(QtWidgets.QDialog):
     def read_var(self):
 
         self.name =  str(self.qlist_widget.currentItem().text())
+        self.long_name = self.fh_ice.variables[str(self.name)].long_name
+        self.setWindowTitle(str(self.long_name)) 
         var_ice_nonmasked = np.array(self.fh_ice.variables[self.name][:]).T 
         var_ice =  ma.masked_invalid (var_ice_nonmasked)
         var_water = np.array(self.fh_water.variables[self.name][:]).T 
         var_sediments = np.array(self.fh_sediments.variables[self.name][:]).T 
         data_units = self.fh_ice.variables[self.name].units
-
                     
         return var_ice,var_water,var_sediments,data_units
             
@@ -170,9 +159,7 @@ class Window(QtWidgets.QDialog):
         self.max_sed = np.amax(self.depth_sed)
         
         self.time2 = self.fh_ice.variables['time'][:]
-    
         self.time_units = self.fh_ice.variables['time'].units
-
         self.format_time = num2date(self.time2,units = self.time_units,calendar= 'standard')
          
                
@@ -180,23 +167,17 @@ class Window(QtWidgets.QDialog):
         #########################
         # Values for time axis  #
         #########################
-        
-        
+                
         start_year = self.combobox_start_year.value()
         stop_year = self.combobox_stop_year.value()
         
         to_start = datetime.datetime(start_year,1,1,12,0)
         to_stop= datetime.datetime(stop_year,1,1,12,0)
-        #to_start = datetime.date(2014, 11, 4)
-        
-        #start = int(np.where(format_time == to_start)[0])
-        
         
         start = date2index(to_start, self.time,#units = time_units,
                             calendar=None, select='nearest')
         stop = date2index(to_stop, self.time,#units = time_units,
                             calendar=None, select='nearest')
-
 
         data = self.read_var()
         #self.fh_ice.close()         
@@ -223,7 +204,7 @@ class Window(QtWidgets.QDialog):
         self.fh_sediments.close()          
         
         gs = gridspec.GridSpec(3, 1)
-        gs.update(left=0.15, right= 0.97,top = 0.95,bottom = 0.06,
+        gs.update(left=0.15, right= 0.96,top = 0.95,bottom = 0.06,
                            wspace=0.2,hspace=0.2)
       
         #add subplots
@@ -237,10 +218,12 @@ class Window(QtWidgets.QDialog):
         
         #specify colormap
         #cmap = plt.cm.terrain #'plasma' #'terrain'
+        
         cmap = plt.get_cmap('viridis') 
-        min = ma.min(var_ice)
-        max = ma.max(var_ice)
-        #print (max,min)
+        min = ma.min(var_water)
+        max = ma.max(var_water)
+        print (ma.min(var_ice), ma.min(var_water),ma.min(var_sed))        
+
         #var_levels = np.linspace(min,max,num = 20 )
 
         #plot 2d figures 
@@ -251,7 +234,7 @@ class Window(QtWidgets.QDialog):
                          #linewidth = 0.000005)
         
         ax0.set_title((self.name+' '+ str(data_units)))
-        
+  
         import matplotlib.ticker as ticker
 
         def fmt(x, pos):
@@ -277,7 +260,9 @@ class Window(QtWidgets.QDialog):
                         # linewidth = 0.000005)
         
         ax2.axhline(self.max_water, color='w', linestyle = '--',linewidth = 1 ) 
-
+        #ax2.annotate('SWI', xytext=(0.5, 0.5), textcoords='axes fraction')
+        ax2.annotate('  Sediment Water Interface',  xy =(start_f,self.max_water), xytext=(start_f,self.max_water-0.05),color = 'w')
+        ### Time ticks ### 
         from dateutil.relativedelta import relativedelta
         if (stop-start)>= 367:
             dt =  int((stop - start)/365) #number of years
@@ -296,7 +281,7 @@ class Window(QtWidgets.QDialog):
         cb1 = add_colorbar(CS4,ax1)
         cb2 = add_colorbar(CS7,ax2)
         
-        letters = ['A','B','C']
+        letters = ['(a)','(b)','(c)']
         labels = ["Ice thickness \n(cm)", "Depth \n(m)","Depth \n(m)" ]
         n = 0
         
@@ -305,21 +290,26 @@ class Window(QtWidgets.QDialog):
                 axis.set_xticks(time_ticks)
             except: NameError
             axis.yaxis.set_label_coords(-0.1, 0.6)
-            axis.text(-0.085, 0.9, letters[n], transform=axis.transAxes, 
-                    size=15, weight='bold')
-            axis.set_ylabel(labels[n], fontsize=14 )
+            axis.text(-0.21, 0.9, letters[n], transform=axis.transAxes , 
+                    size= self.fontsize) #, weight='bold')
+            axis.set_ylabel(labels[n], fontsize = self.fontsize)
+              
             n=n+1
- 
+            #plt.tick_params(axis='both', which='major', labelsize= self.fontsize) 
+            
+         
         ax1.set_ylim(self.max_water,self.min_water)
         ax2.set_ylim(self.max_sed,self.min_sed)  
         ax0.set_ylim(self.min_ice,self.max_ice)
         
         # hide horizontal axis labels 
         ax0.set_xticklabels([])    
-        ax1.set_xticklabels([])     
-        
-        
-            
+        ax1.set_xticklabels([]) 
+  
+        #plt.yticks(fontsize=self.fontsize, rotation=90) 
+        #ax.yaxis.label.set_size(16) 
+        #plt.rcParams.update({'font.size': 14})
+           
         if (stop-start)>= 365*6:
             ax2.xaxis.set_major_formatter(
                 mdates.DateFormatter('%Y')) 
@@ -330,34 +320,19 @@ class Window(QtWidgets.QDialog):
         else : 
             ax2.xaxis.set_major_formatter(
                 mdates.DateFormatter('%b'))
-              
-        #plt.rcParams.update({'font.size': 14})
-
-
+                               
         if self.action == 'showfigure' : 
-        #    print ("show figure")
             self.canvas.draw()                
         elif self.action == 'savepdf' :
             self.canvas.draw()
-            plt.savefig('ice_brom_{}.pdf'.format(self.name), format='pdf')
-            
-            
+            plt.savefig('ice_brom_{}.pdf'.format(self.name), format='pdf', dpi=300)
+                        
     #plt.savefig('ice_brom_{}.png'.format(name),transparent = True)
     #plt.savefig('ice_brom_{}.pdf'.format(name), format='pdf')
     
     # Save in a vector format 
     #plt.savefig('ice_brom_{}.eps'.format(name), format='eps')
-    
-'''    
-if __name__ == '__3fig__':
-    app = QtWidgets.QApplication(sys.argv)
-    app.setStyle("plastique")
-    to3fig = Window()
-    to3fig.setStyleSheet("background-color:#dceaed;")
-    to3fig.show()
-    sys.exit(app.exec_()) '''
-  
-    
+        
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle("plastique")
