@@ -134,7 +134,7 @@ class Window(QtWidgets.QDialog):
         self.fh_water =  Dataset(self.water_fname)  
         self.fh_sediments =  Dataset(self.sediments_fname) 
                     
-        self.time = self.fh_ice.variables['time']
+
 
         self.depth = self.fh_ice.variables['z'][:] 
         self.depth_faces = self.fh_ice.variables['z_faces'][:] 
@@ -161,8 +161,15 @@ class Window(QtWidgets.QDialog):
         self.min_sed = np.amin(self.depth_sed)
         self.max_sed = np.amax(self.depth_sed)
         
-        self.time2 = self.fh_ice.variables['time'][:]
-        self.time_units = self.fh_ice.variables['time'].units
+        #  
+        try:
+            self.time = self.fh_ice.variables['time']      
+            self.time2 = self.fh_ice.variables['time'][:]
+            self.time_units = self.fh_ice.variables['time'].units
+        except KeyError:
+            self.time = self.fh_ice.variables['ocean_time']   
+            self.time2 = self.fh_ice.variables['ocean_time'][:]            
+            self.time_units = self.fh_ice.variables['ocean_time'].units
         self.format_time = num2date(self.time2,units = self.time_units,calendar= 'standard')
          
                
