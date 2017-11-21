@@ -39,9 +39,12 @@ class Window(QtWidgets.QDialog):
         self.sediments_fname = os.path.join(directory,'sediments.nc')
         
         self.fh_ice =  Dataset(self.ice_fname)   
-        
-        self.time = self.fh_ice.variables['time'][:]
-        units = self.fh_ice.variables['time'].units        
+        try:
+            self.time = self.fh_ice.variables['time'][:]
+            units = self.fh_ice.variables['time'].units     
+        except KeyError: 
+            self.time = self.fh_ice.variables['ocean_time'][:]
+            units = self.fh_ice.variables['ocean_time'].units                    
         self.format_time = num2date(self.time,units = units,
                                     calendar= 'standard')   
             
