@@ -3,6 +3,7 @@ is a script for visualisation the results of 1D biogeochemical model IPBM+ERSEM+
 https://www.researchgate.net/publication/317901682_Simultaneous_simulation_of_sea_ice-water-sediments_biogeochemistry 
 
 It is written on Python3 and tested for Windows10 
+
 Additionally to standard python libraries the srcipt uses
 PyQt5 https://www.riverbankcomputing.com/software/pyqt/download5 and 
 netCDF4 http://unidata.github.io/netcdf4-python/
