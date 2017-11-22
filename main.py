@@ -136,6 +136,19 @@ class Window(QtWidgets.QDialog):
         if len(self.change_title.text()) < 1: 
             self.change_title.setText(self.name+' '+ data_units)                    
         return var_ice,var_water,var_sediments,data_units
+
+    def save_to_dir(self,dir_name):
+        #dir_name = 'Results'
+        script_dir = os.path.abspath(os.path.dirname(__file__))
+        dir_to_save = os.path.abspath(os.path.join(script_dir,dir_name))
+            
+        if not os.path.isdir(dir_to_save):
+            os.makedirs(dir_to_save)
+        filename = '{}\ice_brom_{}.pdf'.format(dir_to_save,self.name)       
+        #plt.savefig(results_dir+title+'.png')
+        plt.savefig(filename, format='pdf', dpi=300)
+
+
             
     def plot_3fig(self): 
        
@@ -355,7 +368,9 @@ class Window(QtWidgets.QDialog):
             self.canvas.draw()                
         elif self.action == 'savepdf' :
             self.canvas.draw()
-            plt.savefig('ice_brom_{}.pdf'.format(self.name), format='pdf', dpi=300)
+            self.save_to_dir('Results')
+    
+
                         
     #plt.savefig('ice_brom_{}.png'.format(name),transparent = True)
     #plt.savefig('ice_brom_{}.pdf'.format(name), format='pdf')
