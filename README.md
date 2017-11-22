@@ -5,10 +5,13 @@ https://www.researchgate.net/publication/317901682_Simultaneous_simulation_of_se
 It is written on Python3 and tested for Windows10 
 
 Additionally to standard python libraries the srcipt uses
-PyQt5 https://www.riverbankcomputing.com/software/pyqt/download5 and 
-netCDF4 http://unidata.github.io/netcdf4-python/
+PyQt5 https://www.riverbankcomputing.com/software/pyqt/download5 
 
-After running the script, the dialog will be opened. You must choose foldere containing the output from IPBM, 
+and netCDF4 http://unidata.github.io/netcdf4-python/
+
+After running the script, the dialog will be opened. 
+
+You must choose foldere containing the output from IPBM, 
 three files: ice.nc, water.nc, sediment.nc 
 
 
