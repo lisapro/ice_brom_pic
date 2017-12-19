@@ -5,6 +5,7 @@ Created on 28. jun. 2017
 '''
 import os
 from PyQt5 import QtWidgets,QtGui, QtCore
+from PyQt5.QtWidgets import QTableWidget,QTableWidgetItem
 from netCDF4 import Dataset,num2date,date2num,date2index
 import numpy as np
 import matplotlib.pyplot as plt
@@ -84,7 +85,9 @@ class Window(QtWidgets.QDialog):
         self.combobox_stop_year.setRange(first_year+1, last_year)                        
         self.qlist_widget = QtWidgets.QListWidget()        
         self.qlist_widget.addItems(self.names_vars)
-        
+
+
+        self.table_button = QtWidgets.QPushButton('Values(table)')       
         
         layout = QtWidgets.QGridLayout()
 
@@ -100,14 +103,16 @@ class Window(QtWidgets.QDialog):
         layout.addWidget(self.combobox_start_year,0,6,1,1)        
         layout.addWidget(self.label_stop_year,0,7,1,1)
         layout.addWidget(self.combobox_stop_year,0,8,1,1)                
-                        
-        layout.addWidget(self.qlist_widget,1,0,1,1)      
-        layout.addWidget(self.canvas,1,1,1,8)    
+
+        layout.addWidget(self.table_button,1,0,1,1)                
+        layout.addWidget(self.qlist_widget,2,0,1,1)      
+        layout.addWidget(self.canvas,2,1,1,8)    
                                     
         self.setLayout(layout)        
         self.button.released.connect(self.call_show_3fig)  
         self.save_button.released.connect(self.call_save_3fig) 
-              
+        self.table_button.released.connect(self.table)    
+          
     def load_work_directory(self):
         #directory = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
         directory = askdirectory()
@@ -128,10 +133,16 @@ class Window(QtWidgets.QDialog):
 
         self.long_name = self.fh_ice.variables[str(self.name)].long_name
         self.setWindowTitle(str(self.long_name)) 
-        var_ice_nonmasked = np.array(self.fh_ice.variables[self.name][:]).T 
-        var_ice =  ma.masked_invalid (var_ice_nonmasked)
-        var_water = np.array(self.fh_water.variables[self.name][:]).T 
-        var_sediments = np.array(self.fh_sediments.variables[self.name][:]).T 
+        #var_ice_nonmasked = np.array(self.fh_ice.variables[self.name][:]).T 
+        var_ice =  ma.masked_invalid (
+            np.array(self.fh_ice.variables[self.name][:]).T )
+        var_water = np.array(
+            self.fh_water.variables[self.name][:]).T 
+        var_sediments = np.array(
+            self.fh_sediments.variables[self.name][:]).T 
+            
+        self.depth_water = np.array(self.fh_water.variables['z_faces'][:])     
+            
         data_units = self.fh_ice.variables[self.name].units
         if len(self.change_title.text()) < 1: 
             self.change_title.setText(self.name+' '+ data_units)                    
@@ -177,7 +188,7 @@ class Window(QtWidgets.QDialog):
         self.min_ice = np.amin(self.depth_ice_faces)
         self.max_ice = np.amax(self.depth_ice_faces)
         
-        self.depth_water = np.array(self.fh_water.variables['z_faces'][:]) 
+
         self.depth_sed = self.fh_sediments.variables['z_faces'][:] 
         
         self.min_water = np.amin(self.depth_water)
@@ -371,13 +382,58 @@ class Window(QtWidgets.QDialog):
             self.save_to_dir('Results')
     
 
-                        
-    #plt.savefig('ice_brom_{}.png'.format(name),transparent = True)
-    #plt.savefig('ice_brom_{}.pdf'.format(name), format='pdf')
-    
-    # Save in a vector format 
-    #plt.savefig('ice_brom_{}.eps'.format(name), format='eps')
+    def table(self):
+
+        self.fh_ice =  Dataset(self.ice_fname)  
+        self.fh_water =  Dataset(self.water_fname)  
+        self.fh_sediments =  Dataset(self.sediments_fname)   
+        data = self.read_var()
         
+        #self.fh_ice.close()         
+        #var_ice = data[0]
+        var_water = data[1].T
+        #var_sed = data[2]
+        data_units = data[3]
+        
+        #data = {'col1':['1','2','3'], 'col2':['4','5','6'], 'col3':['7','8','9']}
+        #table = MyTable(self, data, 5, 3)
+        #table.show()
+        
+        self.tableWidget = QTableWidget() 
+        
+        #self.tableWidget.setItem(var_water, QTableWidgetItem("Cell (1,1)"))
+        lenx = var_water.shape[0]
+        leny = var_water.shape[1]
+        
+        self.tableWidget.setColumnCount(lenx) 
+        self.tableWidget.setRowCount(leny+1)        
+        for column in range(lenx):
+            self.tableWidget.setHorizontalHeaderItem(
+                column, QTableWidgetItem(str(self.format_time[column].date())))
+        
+        
+        for row in range(leny):
+            self.tableWidget.setVerticalHeaderItem(
+                row, QTableWidgetItem(str(self.depth_water[row])))            
+            
+        #self.tableWidget.setHorizontalHeaderLabels(QString(self.time))
+
+        for row in range(leny):
+            for column in range(lenx):
+                self.tableWidget.setItem(row,column, #row,column!
+                    QTableWidgetItem(
+                        str(var_water[column,row]))) #column,row!
+        
+        self.tableWidget.show()
+        #print (var_water)       
+        #pass                    
+        #plt.savefig('ice_brom_{}.png'.format(name),transparent = True)
+        #plt.savefig('ice_brom_{}.pdf'.format(name), format='pdf')
+    
+        # Save in a vector format 
+        #plt.savefig('ice_brom_{}.eps'.format(name), format='eps')
+
+                    
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle("plastique")
