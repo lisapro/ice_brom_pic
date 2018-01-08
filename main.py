@@ -34,8 +34,8 @@ class Window(QtWidgets.QDialog):
                         facecolor='None',edgecolor='None')        
         self.canvas = FigureCanvas(self.figure)         
         directory =  self.load_work_directory() 
+        
         self.ice_fname = os.path.abspath(os.path.join(directory,'ice.nc')) 
-
         self.water_fname = os.path.join(directory,'water.nc')
         self.sediments_fname = os.path.join(directory,'sediments.nc')
         
@@ -115,8 +115,8 @@ class Window(QtWidgets.QDialog):
           
     def load_work_directory(self):
         #directory = str(QtWidgets.QFileDialog.getExistingDirectory(self, "Select Directory"))
-        directory = askdirectory()
-        return directory #ask_filename
+        #directory = askdirectory()
+        return askdirectory() #directory #ask_filename
     
     def call_show_3fig(self):
         #print ('in show 3 fig')
@@ -131,7 +131,8 @@ class Window(QtWidgets.QDialog):
 
         self.name =  str(self.qlist_widget.currentItem().text())
 
-        self.long_name = self.fh_ice.variables[str(self.name)].long_name
+        self.long_name = str(self.fh_ice.variables[str(self.name)].long_name)
+        
         self.setWindowTitle(str(self.long_name)) 
         #var_ice_nonmasked = np.array(self.fh_ice.variables[self.name][:]).T 
         var_ice =  ma.masked_invalid (
@@ -141,7 +142,7 @@ class Window(QtWidgets.QDialog):
         var_sediments = np.array(
             self.fh_sediments.variables[self.name][:]).T 
             
-        self.depth_water = np.array(self.fh_water.variables['z_faces'][:])     
+     
             
         data_units = self.fh_ice.variables[self.name].units
         if len(self.change_title.text()) < 1: 
@@ -155,9 +156,9 @@ class Window(QtWidgets.QDialog):
             
         if not os.path.isdir(dir_to_save):
             os.makedirs(dir_to_save)
-        filename = '{}\ice_brom_{}.pdf'.format(dir_to_save,self.name)       
+        filename = '{}\ice_brom_{}.png'.format(dir_to_save,self.name)       
         #plt.savefig(results_dir+title+'.png')
-        plt.savefig(filename, format='pdf', dpi=300)
+        plt.savefig(filename, format='png', dpi=300)
 
 
             
@@ -188,7 +189,7 @@ class Window(QtWidgets.QDialog):
         self.min_ice = np.amin(self.depth_ice_faces)
         self.max_ice = np.amax(self.depth_ice_faces)
         
-
+        self.depth_water = np.array(self.fh_water.variables['z_faces'][:])
         self.depth_sed = self.fh_sediments.variables['z_faces'][:] 
         
         self.min_water = np.amin(self.depth_water)
@@ -216,7 +217,7 @@ class Window(QtWidgets.QDialog):
                 
         start_year = self.combobox_start_year.value()
         stop_year = self.combobox_stop_year.value()
-        
+        #assert start_year < stop_year
         to_start = datetime.datetime(start_year,1,1,12,0)
         to_stop= datetime.datetime(stop_year,1,1,12,0)
         
@@ -224,7 +225,7 @@ class Window(QtWidgets.QDialog):
                             calendar=None, select='nearest')
         stop = date2index(to_stop, self.time,#units = time_units,
                             calendar=None, select='nearest')
-
+        
         data = self.read_var()
 
         
@@ -252,7 +253,7 @@ class Window(QtWidgets.QDialog):
         self.fh_sediments.close()          
         
         gs = gridspec.GridSpec(3, 1)
-        gs.update(left=0.15, right= 0.96,top = 0.95,bottom = 0.06,
+        gs.update(left=0.15, right= 0.95,top = 0.95,bottom = 0.06,
                            wspace=0.2,hspace=0.2)
       
         #add subplots
@@ -286,7 +287,7 @@ class Window(QtWidgets.QDialog):
             title = self.change_title.text()
             ax0.set_title(title)
         else:                 
-            ax0.set_title((self.name+' '+ str(data_units)))
+            ax0.set_title(self.long_name+' ['+ str(data_units)+']')
 
             
         import matplotlib.ticker as ticker
@@ -388,7 +389,7 @@ class Window(QtWidgets.QDialog):
         self.fh_water =  Dataset(self.water_fname)  
         self.fh_sediments =  Dataset(self.sediments_fname)   
         data = self.read_var()
-        
+        self.depth_water = np.array(self.fh_water.variables['z_faces'][:])        
         #self.fh_ice.close()         
         #var_ice = data[0]
         var_water = data[1].T
