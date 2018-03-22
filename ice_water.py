@@ -162,12 +162,12 @@ for axis in (ax1,ax1_1,ax1_2,ax1_3,ax1_4,ax1_5):
     axis.set_yticks((20,40,60,80,100))
     axis.xaxis.set_major_formatter(
             mdates.DateFormatter('%d.%m'))
-    axis.set_ylabel('water \ndepth (cm)')
+    axis.set_ylabel('water depth \ncm')
     
 ax1_4.set_xlabel('day,month')    
 ax1_5.set_xlabel('day,month')   
   
-ax0.set_title('Chlorophyll')    
+ax0.set_title(r'$Chlorophyll\ a\ mg/m^3$')    
 ax0_1.set_title(r'$ pH $') 
 ax0_2.set_title(r'$ O_2\ \mu M$')
 ax0_3.set_title(r'$ Si\ \mu M$')
@@ -177,8 +177,8 @@ ax0_5.set_title(r'$ NO_3\ \mu M$')
 for axis in (ax0,ax0_1,ax0_2,ax0_3,ax0_4,ax0_5):
     axis.set_ylim(0,100)
     axis.set_xticks([])
-    axis.set_ylabel('ice \n depth (cm)')
-    
+    axis.set_ylabel('ice thickness \ncm')
+    axis.set_yticks((0,20,40,60,80,100))
     
 '''
 
