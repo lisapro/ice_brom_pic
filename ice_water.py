@@ -166,7 +166,7 @@ for axis in (ax1,ax1_1,ax1_2,ax1_3,ax1_4,ax1_5):
 ax1_4.set_xlabel('day,month')    
 ax1_5.set_xlabel('day,month')   
   
-ax0.set_title(r'$\mathrm{Chlorophyll\ a\ mg* m ^{-3}}$')    
+ax0.set_title(r'$\mathrm{Total\ chlorophyll\ a\ mg\cdot m ^{-3}}$')    
 ax0_1.set_title(r'$\mathrm{ pH }$') 
 ax0_2.set_title(r'$\mathrm{ O_2\ \mu M}$')
 ax0_3.set_title(r'$\mathrm{ Si\ \mu M}$')
