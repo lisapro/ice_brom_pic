@@ -327,14 +327,19 @@ class Window(QtWidgets.QDialog):
                     self.format_time[start]+relativedelta(years = n))
         
         
-        def add_colorbar(CS,axis):
-            cb = plt.colorbar(CS,ax = axis,pad=0.02,
-                     aspect = 4,format=ticker.FuncFormatter(fmt)) 
+        def add_colorbar(CS,axis,ma1):
+            if ma1 > 10000 or ma1 < 0.001:
+                cb = plt.colorbar(CS,ax = axis,pad=0.02,
+                     aspect = 7,format=ticker.FuncFormatter(fmt)) 
+            else: 
+                cb = plt.colorbar(CS,ax = axis,pad=0.02,
+                     aspect = 7) 
             return cb
         
-        cb0 = add_colorbar(CS1,ax0)
-        cb1 = add_colorbar(CS4,ax1)
-        cb2 = add_colorbar(CS7,ax2)
+        ma1 = ma.max(var_ice[:,start:stop])        
+        cb0 = add_colorbar(CS1,ax0,ma1)
+        cb1 = add_colorbar(CS4,ax1,ma1)
+        cb2 = add_colorbar(CS7,ax2,ma1)
         
         letters = ['(a)','(b)','(c)']
         labels = ["Ice thickness \n(cm)", "Depth \n(m)","Depth \n(m)" ]
