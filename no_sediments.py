@@ -30,7 +30,7 @@ from matplotlib.backends.backend_qt5agg import (
 class Window(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
-        self.figure = plt.figure(figsize=(8.3 ,3.4), dpi=100,
+        self.figure = plt.figure(figsize=(8.3 ,3), dpi=100,
                         facecolor='None',edgecolor='None')        
         self.canvas = FigureCanvas(self.figure)         
         directory =  self.load_work_directory() 
@@ -252,8 +252,8 @@ class Window(QtWidgets.QDialog):
         self.fh_water.close()
         self.fh_sediments.close()          
         
-        gs = gridspec.GridSpec(2, 1)
-        gs.update(left=0.12, right= 0.95,top = 0.94,bottom = 0.07,
+        gs = gridspec.GridSpec(2, 1,height_ratios=[1, 1])
+        gs.update(left=0.09, right= 0.98,top = 0.931,bottom = 0.07,
                            wspace=0.2,hspace=0.1)
       
         #add subplots
@@ -311,13 +311,20 @@ class Window(QtWidgets.QDialog):
                     self.format_time[start]+relativedelta(years = n))
         
         
-        def add_colorbar(CS,axis):
-            cb = plt.colorbar(CS,ax = axis,pad=0.02,
+        def add_colorbar(CS,axis,ma1,mi1):
+
+            if ma1 > 10000 or mi1 < 0.0001:
+                cb = plt.colorbar(CS,ax = axis,pad=0.02,
                      aspect = 7,format=ticker.FuncFormatter(fmt)) 
+            else: 
+                cb = plt.colorbar(CS,ax = axis,pad=0.02,
+                     aspect = 7)                     
             return cb
         
-        cb0 = add_colorbar(CS1,ax0)
-        cb1 = add_colorbar(CS4,ax1)
+        ma1 = ma.max(var_ice[:,start:stop])
+        mi1 = ma.min(var_ice[:,start:stop])
+        cb0 = add_colorbar(CS1,ax0,ma1,mi1)
+        cb1 = add_colorbar(CS4,ax1,ma1,mi1)
         #cb2 = add_colorbar(CS7,ax2)
         
         #letters = ['(a)','(b)','(c)']
