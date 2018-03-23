@@ -30,7 +30,7 @@ from matplotlib.backends.backend_qt5agg import (
 class Window(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
-        self.figure = plt.figure(figsize=(8.3 ,4.4), dpi=100,
+        self.figure = plt.figure(figsize=(8.3 ,3.4), dpi=100,
                         facecolor='None',edgecolor='None')        
         self.canvas = FigureCanvas(self.figure)         
         directory =  self.load_work_directory() 
@@ -158,7 +158,7 @@ class Window(QtWidgets.QDialog):
             os.makedirs(dir_to_save)
         filename = '{}\ice_brom_{}.png'.format(dir_to_save,self.name)       
         #plt.savefig(results_dir+title+'.png')
-        plt.savefig(filename, format='png', dpi=300)
+        plt.savefig(filename, format='png', dpi=300, transparent=True)
 
 
             
@@ -253,8 +253,8 @@ class Window(QtWidgets.QDialog):
         self.fh_sediments.close()          
         
         gs = gridspec.GridSpec(2, 1)
-        gs.update(left=0.15, right= 0.95,top = 0.95,bottom = 0.06,
-                           wspace=0.2,hspace=0.2)
+        gs.update(left=0.12, right= 0.95,top = 0.94,bottom = 0.07,
+                           wspace=0.2,hspace=0.1)
       
         #add subplots
         ax0 = self.figure.add_subplot(gs[0]) # o2 ice 
@@ -297,26 +297,10 @@ class Window(QtWidgets.QDialog):
             b = int(b)
             return r'${} \times 10^{{{}}}$'.format(a, b)
         
-        #plt.colorbar(myplot, format=ticker.FuncFormatter(fmt))
-        
-        #add colorbar 
-        #cb0 = plt.colorbar(CS1,ax = ax0,pad=0.02,
-        #             aspect = 4,format=ticker.FuncFormatter(fmt))
-        
-        #CS4 = ax1.contourf(X_water,Y_water, var_water[:,start:stop],
-        #                   cmap = cmap) 
         CS4 = ax1.pcolor(X_water,Y_water,var_water[:,start:stop],
                           cmap = cmap) #,edgecolor = 'w',
                          # linewidth = 0.000005)
         
-        #CS7 = ax2.contourf(X_sed,Y_sed, var_sed[:,start:stop],
-        #                   cmap = cmap) 
-        #CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[:,start:stop], cmap = cmap) #,edgecolor = 'w',
-        #                # linewidth = 0.000005)
-        
-        #ax2.axhline(self.max_water, color='w', linestyle = '--',linewidth = 1 ) 
-        ##ax2.annotate('SWI', xytext=(0.5, 0.5), textcoords='axes fraction')
-        #ax2.annotate('  Sediment Water Interface',  xy =(start_f,self.max_water), xytext=(start_f,self.max_water-0.05),color = 'w')
         ### Time ticks ### 
         from dateutil.relativedelta import relativedelta
         if (stop-start)>= 367:
@@ -329,24 +313,24 @@ class Window(QtWidgets.QDialog):
         
         def add_colorbar(CS,axis):
             cb = plt.colorbar(CS,ax = axis,pad=0.02,
-                     aspect = 4,format=ticker.FuncFormatter(fmt)) 
+                     aspect = 7,format=ticker.FuncFormatter(fmt)) 
             return cb
         
         cb0 = add_colorbar(CS1,ax0)
         cb1 = add_colorbar(CS4,ax1)
         #cb2 = add_colorbar(CS7,ax2)
         
-        letters = ['(a)','(b)','(c)']
-        labels = ["Ice thickness \n(cm)", "Depth \n(m)","Depth \n(m)" ]
+        #letters = ['(a)','(b)','(c)']
+        labels = ["Ice thickness (cm)", "Depth (m)","Depth \n(m)" ]
         n = 0
         
         for axis in (ax0,ax1): 
             try:
                 axis.set_xticks(time_ticks)
             except: NameError
-            axis.yaxis.set_label_coords(-0.1, 0.6)
-            axis.text(-0.21, 0.9, letters[n], transform=axis.transAxes , 
-                    size= self.fontsize) #, weight='bold')
+            axis.yaxis.set_label_coords(-0.065, 0.5)
+            #axis.text(-0.21, 0.9, letters[n], transform=axis.transAxes , 
+            #        size= self.fontsize) #, weight='bold')
             axis.set_ylabel(labels[n], fontsize = self.fontsize)
               
             n=n+1
@@ -355,7 +339,7 @@ class Window(QtWidgets.QDialog):
          
         ax1.set_ylim(self.max_water,self.min_water)
         #ax2.set_ylim(self.max_sed,self.min_sed)  
-        ax0.set_ylim(self.min_ice,self.max_ice)
+        ax0.set_ylim(self.min_ice,250) #self.max_ice
         
         # hide horizontal axis labels 
         ax0.set_xticklabels([])    
