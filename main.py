@@ -30,7 +30,7 @@ from matplotlib.backends.backend_qt5agg import (
 class Window(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
-        self.figure = plt.figure(figsize=(8.3 ,4.4), dpi=100,
+        self.figure = plt.figure(figsize=(8.3, 4.4), dpi=100,
                         facecolor='None',edgecolor='None')        
         self.canvas = FigureCanvas(self.figure)         
         directory =  self.load_work_directory() 
@@ -86,7 +86,6 @@ class Window(QtWidgets.QDialog):
         self.qlist_widget = QtWidgets.QListWidget()        
         self.qlist_widget.addItems(self.names_vars)
 
-
         self.table_button = QtWidgets.QPushButton('Values(table)')       
         
         layout = QtWidgets.QGridLayout()
@@ -128,11 +127,14 @@ class Window(QtWidgets.QDialog):
         self.plot_3fig()
         
     def read_var(self):
-
-        self.name =  str(self.qlist_widget.currentItem().text())
-
+        try:
+            self.name =  str(self.qlist_widget.currentItem().text())
+        except AttributeError:   
+            messagebox = QtWidgets.QMessageBox.about(self, "Retry",
+                                             'Choose variable,please') 
+            return None      
+          
         self.long_name = str(self.fh_ice.variables[str(self.name)].long_name)
-        
         self.setWindowTitle(str(self.long_name)) 
         #var_ice_nonmasked = np.array(self.fh_ice.variables[self.name][:]).T 
         var_ice =  ma.masked_invalid (
@@ -141,9 +143,7 @@ class Window(QtWidgets.QDialog):
             self.fh_water.variables[self.name][:]).T 
         var_sediments = np.array(
             self.fh_sediments.variables[self.name][:]).T 
-            
-     
-            
+                        
         data_units = self.fh_ice.variables[self.name].units
         if len(self.change_title.text()) < 1: 
             self.change_title.setText(self.name+' '+ data_units)                    
@@ -158,10 +158,8 @@ class Window(QtWidgets.QDialog):
             os.makedirs(dir_to_save)
         filename = '{}\ice_brom_{}.png'.format(dir_to_save,self.name)       
         #plt.savefig(results_dir+title+'.png')
-        plt.savefig(filename, format='png', dpi=300)
+        plt.savefig(filename, format='png', dpi=300,transparent = True)
 
-
-            
     def plot_3fig(self): 
        
         plt.clf() 
@@ -170,8 +168,6 @@ class Window(QtWidgets.QDialog):
         self.fh_water =  Dataset(self.water_fname)  
         self.fh_sediments =  Dataset(self.sediments_fname) 
                     
-
-
         self.depth = self.fh_ice.variables['z'][:] 
         self.depth_faces = self.fh_ice.variables['z_faces'][:] 
            
@@ -208,9 +204,7 @@ class Window(QtWidgets.QDialog):
             self.time2 = self.fh_ice.variables['ocean_time'][:]            
             self.time_units = self.fh_ice.variables['ocean_time'].units
         self.format_time = num2date(self.time2,units = self.time_units,calendar= 'standard')
-         
-               
-        
+                 
         #########################
         # Values for time axis  #
         #########################
@@ -239,11 +233,9 @@ class Window(QtWidgets.QDialog):
         X  = num2date(X,units = self.time_units) #format_time  
         start_f = num2date(self.time2[start],units = self.time_units) 
         stop_f = num2date(self.time2[stop],units = self.time_units) 
-        #X = format_time
         
         X_water,Y_water = np.meshgrid(self.time2[start:stop],self.depth_water)
         X_water = num2date(X_water,units = self.time_units)   
-        #X_water = format_time
         
         X_sed, Y_sed = np.meshgrid(self.time2[start:stop],self.depth_sed)
         X_sed = num2date(X_sed,units = self.time_units)   
@@ -253,31 +245,24 @@ class Window(QtWidgets.QDialog):
         self.fh_sediments.close()          
         
         gs = gridspec.GridSpec(3, 1)
-        gs.update(left=0.15, right= 0.95,top = 0.95,bottom = 0.06,
-                           wspace=0.2,hspace=0.2)
+        gs.update(left=0.09, right= 0.95,top = 0.95,bottom = 0.06,
+                           wspace=0.1,hspace=0.05)
       
         #add subplots
-        ax0 = self.figure.add_subplot(gs[0]) # o2 ice 
-        ax1 = self.figure.add_subplot(gs[1]) # o2 water
-        ax2 = self.figure.add_subplot(gs[2]) # o2 sed
-
-        # interpolate data to plot            
-        
-        #ax2.set_xlabel("Date", fontsize=14)
+        ax0 = self.figure.add_subplot(gs[0]) # ice 
+        ax1 = self.figure.add_subplot(gs[1]) # water
+        ax2 = self.figure.add_subplot(gs[2]) # sed
         
         #specify colormap
-        #cmap = plt.cm.terrain #'plasma' #'terrain'
-        
+        #cmap = plt.cm.terrain #'plasma' #'terrain'        
         cmap = plt.get_cmap('viridis') 
         cmap_water = plt.get_cmap('CMRmap') 
         min = ma.min(var_water)
         max = ma.max(var_water)
-        #print (ma.min(var_ice), ma.min(var_water),ma.min(var_sed))        
-
+    
         #var_levels = np.linspace(min,max,num = 20 )
 
         #plot 2d figures 
-
         #without interpolation 
         CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap )
         
@@ -299,7 +284,7 @@ class Window(QtWidgets.QDialog):
             b = int(b)
             return r'${} \times 10^{{{}}}$'.format(a, b)
         
-
+        # interpolate data to plot 
         #CS1 = ax0.contourf(X,Y, var_ice[:,start:stop],
         #                   cmap = cmap,levels = var_levels)        
         #CS4 = ax1.contourf(X_water,Y_water, var_water[:,start:stop],
@@ -338,17 +323,18 @@ class Window(QtWidgets.QDialog):
         cb1 = add_colorbar(CS4,ax1,ma1)
         cb2 = add_colorbar(CS7,ax2,ma1)
         
-        letters = ['(a)','(b)','(c)']
-        labels = ["Ice thickness \n(cm)", "Depth \n(m)","Depth \n(m)" ]
+        #letters = ['(a)','(b)','(c)']
+        labels = ["Ice thickness cm", "Depth m","Depth m" ]
         n = 0
-        
+        ice_ticks = np.arange(50,500,50)
+        ax0.set_yticks(ice_ticks)
         for axis in (ax0,ax1,ax2): 
             try:
                 axis.set_xticks(time_ticks)
             except: NameError
-            axis.yaxis.set_label_coords(-0.1, 0.6)
-            axis.text(-0.21, 0.9, letters[n], transform=axis.transAxes , 
-                    size= self.fontsize) #, weight='bold')
+            axis.yaxis.set_label_coords(-0.07, 0.5)
+            #axis.text(-0.21, 0.9, letters[n], transform=axis.transAxes , 
+            #        size= self.fontsize) #, weight='bold')
             axis.set_ylabel(labels[n], fontsize = self.fontsize)
               
             n=n+1
