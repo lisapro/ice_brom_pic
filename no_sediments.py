@@ -134,23 +134,20 @@ class Window(QtWidgets.QDialog):
         self.long_name = str(self.fh_ice.variables[str(self.name)].long_name)
         
         self.setWindowTitle(str(self.long_name)) 
-        #var_ice_nonmasked = np.array(self.fh_ice.variables[self.name][:]).T 
+
         var_ice =  ma.masked_invalid (
             np.array(self.fh_ice.variables[self.name][:]).T )
         var_water = np.array(
             self.fh_water.variables[self.name][:]).T 
         var_sediments = np.array(
             self.fh_sediments.variables[self.name][:]).T 
-            
-     
-            
+           
         data_units = self.fh_ice.variables[self.name].units
         if len(self.change_title.text()) < 1: 
             self.change_title.setText(self.name+' '+ data_units)                    
         return var_ice,var_water,var_sediments,data_units
 
     def save_to_dir(self,dir_name):
-        #dir_name = 'Results'
         script_dir = os.path.abspath(os.path.dirname(__file__))
         dir_to_save = os.path.abspath(os.path.join(script_dir,dir_name))
             
@@ -170,8 +167,6 @@ class Window(QtWidgets.QDialog):
         self.fh_water =  Dataset(self.water_fname)  
         self.fh_sediments =  Dataset(self.sediments_fname) 
                     
-
-
         self.depth = self.fh_ice.variables['z'][:] 
         self.depth_faces = self.fh_ice.variables['z_faces'][:] 
            
@@ -197,8 +192,7 @@ class Window(QtWidgets.QDialog):
         
         self.min_sed = np.amin(self.depth_sed)
         self.max_sed = np.amax(self.depth_sed)
-        
-        #  
+         
         try:
             self.time = self.fh_ice.variables['time']      
             self.time2 = self.fh_ice.variables['time'][:]
@@ -209,8 +203,6 @@ class Window(QtWidgets.QDialog):
             self.time_units = self.fh_ice.variables['ocean_time'].units
         self.format_time = num2date(self.time2,units = self.time_units,calendar= 'standard')
          
-               
-        
         #########################
         # Values for time axis  #
         #########################
@@ -224,10 +216,8 @@ class Window(QtWidgets.QDialog):
         start = date2index(to_start, self.time,#units = time_units,
                             calendar=None, select='nearest')
         stop = date2index(to_stop, self.time,#units = time_units,
-                            calendar=None, select='nearest')
-        
+                            calendar=None, select='nearest')        
         data = self.read_var()
-
         
         #self.fh_ice.close()         
         var_ice = data[0]
@@ -245,12 +235,12 @@ class Window(QtWidgets.QDialog):
         X_water = num2date(X_water,units = self.time_units)   
         #X_water = format_time
         
-        X_sed, Y_sed = np.meshgrid(self.time2[start:stop],self.depth_sed)
-        X_sed = num2date(X_sed,units = self.time_units)   
+        #X_sed, Y_sed = np.meshgrid(self.time2[start:stop],self.depth_sed)
+        #X_sed = num2date(X_sed,units = self.time_units)   
         #X_sed = format_time
         self.fh_ice.close()
         self.fh_water.close()
-        self.fh_sediments.close()          
+        #self.fh_sediments.close()          
         
         gs = gridspec.GridSpec(2, 1,height_ratios=[1, 1])
         gs.update(left=0.09, right= 0.98,top = 0.931,bottom = 0.07,
@@ -259,21 +249,12 @@ class Window(QtWidgets.QDialog):
         #add subplots
         ax0 = self.figure.add_subplot(gs[0]) # o2 ice 
         ax1 = self.figure.add_subplot(gs[1]) # o2 water
-        #ax2 = self.figure.add_subplot(gs[2]) # o2 sed
-
-        # interpolate data to plot            
-        
-        #ax2.set_xlabel("Date", fontsize=14)
-        
-        #specify colormap
-        #cmap = plt.cm.terrain #'plasma' #'terrain'
-        
+                  
         cmap = plt.get_cmap('viridis') 
         cmap_water = plt.get_cmap('CMRmap') 
         min = ma.min(var_water)
         max = ma.max(var_water)
-        #print (ma.min(var_ice), ma.min(var_water),ma.min(var_sed))        
-
+       
         #var_levels = np.linspace(min,max,num = 20 )
 
         #plot 2d figures 
@@ -282,14 +263,12 @@ class Window(QtWidgets.QDialog):
         #without interpolation 
         CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap )#) 3,edgecolor = 'w',
                          #linewidth = 0.000005)
-        
-                
+                        
         if self.checkbox_title.isChecked() == True:
             title = self.change_title.text()
             ax0.set_title(title)
         else:                 
             ax0.set_title(self.long_name+' ['+ str(data_units)+']')
-
             
         import matplotlib.ticker as ticker
 
@@ -312,7 +291,7 @@ class Window(QtWidgets.QDialog):
                     self.format_time[start]+relativedelta(years = n))
         
         
-        def add_colorbar(CS,axis,ma1,mi1):
+        def add_colorbar(CS,axis,ma1):
 
             if ma1 > 10000 or ma1 < 0.001:
                 cb = plt.colorbar(CS,ax = axis,pad=0.02,
@@ -323,9 +302,8 @@ class Window(QtWidgets.QDialog):
             return cb
         
         ma1 = ma.max(var_ice[:,start:stop])
-        mi1 = ma.min(var_ice[:,start:stop])
-        cb0 = add_colorbar(CS1,ax0,ma1,mi1)
-        cb1 = add_colorbar(CS4,ax1,ma1,mi1)
+        cb0 = add_colorbar(CS1,ax0,ma1)
+        cb1 = add_colorbar(CS4,ax1,ma1)
         #cb2 = add_colorbar(CS7,ax2)
         
         #letters = ['(a)','(b)','(c)']
