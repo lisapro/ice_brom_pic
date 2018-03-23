@@ -269,6 +269,7 @@ class Window(QtWidgets.QDialog):
         #cmap = plt.cm.terrain #'plasma' #'terrain'
         
         cmap = plt.get_cmap('viridis') 
+        cmap_water = plt.get_cmap('CMRmap') 
         min = ma.min(var_water)
         max = ma.max(var_water)
         #print (ma.min(var_ice), ma.min(var_water),ma.min(var_sed))        
@@ -298,7 +299,7 @@ class Window(QtWidgets.QDialog):
             return r'${} \times 10^{{{}}}$'.format(a, b)
         
         CS4 = ax1.pcolor(X_water,Y_water,var_water[:,start:stop],
-                          cmap = cmap) #,edgecolor = 'w',
+                          cmap = cmap_water) #,edgecolor = 'w',
                          # linewidth = 0.000005)
         
         ### Time ticks ### 
@@ -313,7 +314,7 @@ class Window(QtWidgets.QDialog):
         
         def add_colorbar(CS,axis,ma1,mi1):
 
-            if ma1 > 10000 or mi1 < 0.0001:
+            if ma1 > 10000 or ma1 < 0.001:
                 cb = plt.colorbar(CS,ax = axis,pad=0.02,
                      aspect = 7,format=ticker.FuncFormatter(fmt)) 
             else: 
