@@ -269,6 +269,7 @@ class Window(QtWidgets.QDialog):
         #cmap = plt.cm.terrain #'plasma' #'terrain'
         
         cmap = plt.get_cmap('viridis') 
+        cmap_water = plt.get_cmap('CMRmap') 
         min = ma.min(var_water)
         max = ma.max(var_water)
         #print (ma.min(var_ice), ma.min(var_water),ma.min(var_sed))        
@@ -276,13 +277,14 @@ class Window(QtWidgets.QDialog):
         #var_levels = np.linspace(min,max,num = 20 )
 
         #plot 2d figures 
-        #CS1 = ax0.contourf(X,Y, var_ice[:,start:stop],
-        #                   cmap = cmap,levels = var_levels)
+
         #without interpolation 
-        CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap )#) 3,edgecolor = 'w',
-                         #linewidth = 0.000005)
+        CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap )
         
-                
+        CS4 = ax1.pcolor(X_water,Y_water,var_water[:,start:stop],
+                          cmap = cmap_water) #,edgecolor = 'w',
+                         # linewidth = 0.000005)
+        CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[:,start:stop], cmap = cmap)                
         if self.checkbox_title.isChecked() == True:
             title = self.change_title.text()
             ax0.set_title(title)
@@ -297,26 +299,21 @@ class Window(QtWidgets.QDialog):
             b = int(b)
             return r'${} \times 10^{{{}}}$'.format(a, b)
         
-        #plt.colorbar(myplot, format=ticker.FuncFormatter(fmt))
-        
-        #add colorbar 
-        #cb0 = plt.colorbar(CS1,ax = ax0,pad=0.02,
-        #             aspect = 4,format=ticker.FuncFormatter(fmt))
-        
+
+        #CS1 = ax0.contourf(X,Y, var_ice[:,start:stop],
+        #                   cmap = cmap,levels = var_levels)        
         #CS4 = ax1.contourf(X_water,Y_water, var_water[:,start:stop],
         #                   cmap = cmap) 
-        CS4 = ax1.pcolor(X_water,Y_water,var_water[:,start:stop],
-                          cmap = cmap) #,edgecolor = 'w',
-                         # linewidth = 0.000005)
-        
         #CS7 = ax2.contourf(X_sed,Y_sed, var_sed[:,start:stop],
-        #                   cmap = cmap) 
-        CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[:,start:stop], cmap = cmap) #,edgecolor = 'w',
-                        # linewidth = 0.000005)
+        #                   cmap = cmap)    
+            
+
+
         
         ax2.axhline(self.max_water, color='w', linestyle = '--',linewidth = 1 ) 
-        #ax2.annotate('SWI', xytext=(0.5, 0.5), textcoords='axes fraction')
-        ax2.annotate('  Sediment Water Interface',  xy =(start_f,self.max_water), xytext=(start_f,self.max_water-0.05),color = 'w')
+        ax2.annotate('  Sediment Water Interface',
+                    xy =(start_f,self.max_water),
+                    xytext=(start_f,self.max_water-0.05),color = 'w')
         ### Time ticks ### 
         from dateutil.relativedelta import relativedelta
         if (stop-start)>= 367:
