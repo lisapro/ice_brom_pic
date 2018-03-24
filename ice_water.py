@@ -36,8 +36,8 @@ font = {#'family' : 'normal',
 
 rc('font', **font)
 
-#directory =  askdirectory() 
-directory = r'E:\Users\Shamil\binary\laptev_ersem'
+directory =  askdirectory() 
+#directory = r'E:\Users\Shamil\binary\laptev_ersem'
 ice_fname = os.path.abspath(os.path.join(directory,'ice.nc')) 
 water_fname = os.path.join(directory,'water.nc')
 
