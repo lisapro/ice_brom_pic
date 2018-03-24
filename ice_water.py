@@ -238,8 +238,8 @@ cb1 = add_colorbar(CS2,ax1,[0.1,0.4,0.7,1,1.3,1.6])
 cb0 = add_colorbar(CS1_1,ax0_1)
 cb1 = add_colorbar(CS2_1,ax1_1)  
 
-cb0 = add_colorbar(CS1_2,ax0_2,[0,20,40,60,80,100])
-cb1 = add_colorbar(CS2_2,ax1_2,[210,230,250,270,290])  
+cb0 = add_colorbar(CS1_2,ax0_2) #,[0,20,40,60,80,100])
+cb1 = add_colorbar(CS2_2,ax1_2) #,[210,230,250,270,290])  
 
 cb0 = add_colorbar(CS1_3,ax0_3)
 cb1 = add_colorbar(CS2_3,ax1_3)
