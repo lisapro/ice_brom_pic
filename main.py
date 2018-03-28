@@ -78,7 +78,10 @@ class Window(QtWidgets.QDialog):
         self.checkbox_title = QtWidgets.QCheckBox('Change title ')
         
         self.label_start_year = QtWidgets.QLabel('Start year:') 
-        self.combobox_start_year = QtWidgets.QSpinBox()    
+        self.combobox_start_year = QtWidgets.QSpinBox() 
+        self.checkbox_ice_max = QtWidgets.QCheckBox('Max ice')  
+        self.combobox_ice_max = QtWidgets.QSpinBox()
+        self.combobox_ice_max.setRange(5,500)
         self.combobox_start_year.setRange(first_year, last_year-1)                 
         self.label_stop_year = QtWidgets.QLabel('Stop year:')   
         self.combobox_stop_year = QtWidgets.QSpinBox() 
@@ -103,7 +106,9 @@ class Window(QtWidgets.QDialog):
         layout.addWidget(self.label_stop_year,0,7,1,1)
         layout.addWidget(self.combobox_stop_year,0,8,1,1)                
 
-        layout.addWidget(self.table_button,1,0,1,1)                
+        layout.addWidget(self.table_button,1,0,1,1) 
+        layout.addWidget(self.checkbox_ice_max,1,1,1,1)        
+        layout.addWidget(self.combobox_ice_max,1,2,1,1)                        
         layout.addWidget(self.qlist_widget,2,0,1,1)      
         layout.addWidget(self.canvas,2,1,1,8)    
                                     
@@ -156,9 +161,9 @@ class Window(QtWidgets.QDialog):
             
         if not os.path.isdir(dir_to_save):
             os.makedirs(dir_to_save)
-        filename = '{}\ice_brom_{}.png'.format(dir_to_save,self.name)       
+        filename = '{}\ice_brom_{}.pdf'.format(dir_to_save,self.name)       
         #plt.savefig(results_dir+title+'.png')
-        plt.savefig(filename, format='png', dpi=300,transparent = True)
+        plt.savefig(filename, format='pdf', dpi=300,transparent = True)
 
     def plot_3fig(self): 
        
@@ -183,10 +188,13 @@ class Window(QtWidgets.QDialog):
         self.depth_ice = np.array(self.depth_ice)
         
         self.min_ice = np.amin(self.depth_ice_faces)
-        self.max_ice = np.amax(self.depth_ice_faces)
+        if self.checkbox_ice_max.isChecked() == True:            
+            self.max_ice = self.combobox_ice_max.value()
+        else: 
+            self.max_ice =  np.amax(self.depth_ice_faces)
         
         self.depth_water = np.array(self.fh_water.variables['z_faces'][:])
-        self.depth_sed = self.fh_sediments.variables['z_faces'][:] 
+        self.depth_sed = self.fh_sediments.variables['z_faces'][2:] 
         
         self.min_water = np.amin(self.depth_water)
         self.max_water = np.amax(self.depth_water)
@@ -221,16 +229,14 @@ class Window(QtWidgets.QDialog):
                             calendar=None, select='nearest')
         
         data = self.read_var()
-
         
-        #self.fh_ice.close()         
         var_ice = data[0]
         var_water = data[1]
         var_sed = data[2]
         data_units = data[3]
                                  
         X,Y = np.meshgrid(self.time2[start:stop],self.depth_ice_faces)
-        X  = num2date(X,units = self.time_units) #format_time  
+        X  = num2date(X,units = self.time_units)  
         start_f = num2date(self.time2[start],units = self.time_units) 
         stop_f = num2date(self.time2[stop],units = self.time_units) 
         
@@ -245,7 +251,7 @@ class Window(QtWidgets.QDialog):
         self.fh_sediments.close()          
         
         gs = gridspec.GridSpec(3, 1)
-        gs.update(left=0.09, right= 0.95,top = 0.95,bottom = 0.06,
+        gs.update(left=0.09, right= 1,top = 0.95,bottom = 0.06,
                            wspace=0.1,hspace=0.05)
       
         #add subplots
@@ -257,26 +263,24 @@ class Window(QtWidgets.QDialog):
         #cmap = plt.cm.terrain #'plasma' #'terrain'        
         cmap = plt.get_cmap('viridis') 
         cmap_water = plt.get_cmap('CMRmap') 
-        min = ma.min(var_water)
-        max = ma.max(var_water)
-    
+        
+        #min = ma.min(var_water)
+        #max = ma.max(var_water)
         #var_levels = np.linspace(min,max,num = 20 )
 
         #plot 2d figures 
         #without interpolation 
-        CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap )
-        
+        CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap )       
         CS4 = ax1.pcolor(X_water,Y_water,var_water[:,start:stop],
-                          cmap = cmap_water) #,edgecolor = 'w',
-                         # linewidth = 0.000005)
-        CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[:,start:stop], cmap = cmap)                
+                          cmap = cmap_water)
+        CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[2:,start:stop], cmap = cmap)  
+                      
         if self.checkbox_title.isChecked() == True:
             title = self.change_title.text()
             ax0.set_title(title)
         else:                 
             ax0.set_title(self.long_name+' ['+ str(data_units)+']')
 
-            
         import matplotlib.ticker as ticker
 
         def fmt(x, pos):
@@ -291,14 +295,11 @@ class Window(QtWidgets.QDialog):
         #                   cmap = cmap) 
         #CS7 = ax2.contourf(X_sed,Y_sed, var_sed[:,start:stop],
         #                   cmap = cmap)    
-            
-
-
         
         ax2.axhline(self.max_water, color='w', linestyle = '--',linewidth = 1 ) 
         ax2.annotate('  Sediment Water Interface',
                     xy =(start_f,self.max_water),
-                    xytext=(start_f,self.max_water-0.05),color = 'w')
+                    xytext=(start_f,self.max_water-0.01),color = 'w')
         ### Time ticks ### 
         from dateutil.relativedelta import relativedelta
         if (stop-start)>= 367:
@@ -312,10 +313,10 @@ class Window(QtWidgets.QDialog):
         def add_colorbar(CS,axis,ma1):
             if ma1 > 10000 or ma1 < 0.001:
                 cb = plt.colorbar(CS,ax = axis,pad=0.02,
-                     aspect = 7,format=ticker.FuncFormatter(fmt)) 
+                     aspect = 7,shrink = 0.9,format=ticker.FuncFormatter(fmt)) 
             else: 
-                cb = plt.colorbar(CS,ax = axis,pad=0.02,
-                     aspect = 7) 
+                cb = plt.colorbar(CS,ax = axis,pad=0.01,
+                     aspect = 7,shrink = 0.9) 
             return cb
         
         ma1 = ma.max(var_ice[:,start:stop])        
@@ -332,7 +333,7 @@ class Window(QtWidgets.QDialog):
             try:
                 axis.set_xticks(time_ticks)
             except: NameError
-            axis.yaxis.set_label_coords(-0.07, 0.5)
+            axis.yaxis.set_label_coords(-0.08, 0.5)
             #axis.text(-0.21, 0.9, letters[n], transform=axis.transAxes , 
             #        size= self.fontsize) #, weight='bold')
             axis.set_ylabel(labels[n], fontsize = self.fontsize)
@@ -342,7 +343,7 @@ class Window(QtWidgets.QDialog):
             
          
         ax1.set_ylim(self.max_water,self.min_water)
-        ax2.set_ylim(self.max_sed,self.min_sed)  
+        ax2.set_ylim(self.max_sed,self.min_sed+0.4)  
         ax0.set_ylim(self.min_ice,self.max_ice)
         
         # hide horizontal axis labels 
