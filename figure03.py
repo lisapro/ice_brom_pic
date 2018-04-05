@@ -10,7 +10,6 @@ from matplotlib.backends.backend_qt5agg import (
     NavigationToolbar2QT as NavigationToolbar)
 import matplotlib.pyplot as plt
 from tkinter.filedialog import askopenfilename,askdirectory  
-import os
 from PyQt5 import QtWidgets,QtGui, QtCore
 from PyQt5.QtWidgets import QTableWidget,QTableWidgetItem
 from netCDF4 import Dataset,num2date,date2num,date2index
