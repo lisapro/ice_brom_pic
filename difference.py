@@ -24,7 +24,9 @@ root = tk.Tk()
 root.withdraw()
 #plt.style.use('ggplot')
 #plt.style.use('bmh')
-
+from matplotlib import rc
+font = {'size' : 15}
+rc('font', **font)
 import sys
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas)
@@ -33,7 +35,7 @@ from matplotlib.backends.backend_qt5agg import (
 class Window(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
-        self.figure = plt.figure(figsize=(8.3 ,5), dpi=100,
+        self.figure = plt.figure(figsize=(6.3 ,5), dpi=100,
                         facecolor='None',edgecolor='None')        
         self.canvas = FigureCanvas(self.figure)     
         self.toolbar = NavigationToolbar(self.canvas, self)    
@@ -60,7 +62,7 @@ class Window(QtWidgets.QDialog):
         first_year = self.format_time[0].year
         last_year = self.format_time[-1].year
         
-        self.fontsize = 12
+        self.fontsize = 15
         
         
         self.names_vars = [] 
@@ -207,7 +209,7 @@ class Window(QtWidgets.QDialog):
         self.depth_water = np.array(self.fh_water.variables['z_faces'][:])
         #self.depth_sed = self.fh_sediments.variables['z_faces'][:] 
         
-        self.min_water = 60 #np.amin(self.depth_water)
+        self.min_water = np.amin(self.depth_water) #60 #
         self.max_water = np.amax(self.depth_water)
         
         #self.min_sed = np.amin(self.depth_sed)
@@ -270,8 +272,10 @@ class Window(QtWidgets.QDialog):
         ax0 = self.figure.add_subplot(gs[0]) # o2 ice 
         ax1 = self.figure.add_subplot(gs[1]) # o2 water
                   
-        cmap = plt.get_cmap('viridis') #('Blues_r')
-        #cmap_water = cmap #plt.get_cmap('RdBu_r') 
+        #cmap = plt.get_cmap('gist_ncar') #viridis') #'viridis') #('Blues_r')
+        
+        cmap = plt.get_cmap('CMRmap') 
+        cmap_water = cmap #
         min = ma.min(var_water)
         max = ma.max(var_water)
        

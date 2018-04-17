@@ -21,7 +21,9 @@ root = tk.Tk()
 root.withdraw()
 #plt.style.use('ggplot')
 #plt.style.use('bmh')
-
+from matplotlib import rc
+font = {'size' : 14}
+rc('font', **font)
 import sys
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas)
@@ -30,7 +32,7 @@ from matplotlib.backends.backend_qt5agg import (
 class Window(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
-        self.figure = plt.figure(figsize=(8.3, 4.4), dpi=100,
+        self.figure = plt.figure(figsize=(6.3, 5), dpi=100,
                         facecolor='None',edgecolor='None')        
         self.canvas = FigureCanvas(self.figure)         
         directory =  self.load_work_directory() 
@@ -52,7 +54,7 @@ class Window(QtWidgets.QDialog):
         first_year = self.format_time[0].year
         last_year = self.format_time[-1].year
         
-        self.fontsize = 12
+        self.fontsize = 14
         
         
         self.names_vars = [] 
@@ -161,9 +163,9 @@ class Window(QtWidgets.QDialog):
             
         if not os.path.isdir(dir_to_save):
             os.makedirs(dir_to_save)
-        filename = '{}\ice_brom_{}.pdf'.format(dir_to_save,self.name)       
-        #plt.savefig(results_dir+title+'.png')
-        plt.savefig(filename, format='pdf', dpi=300,transparent = True)
+        filename = '{}\ice_brom_{}.png'.format(dir_to_save,self.name)       
+        plt.savefig(filename, format='png',transparent = True)
+        #plt.savefig(filename, format='pdf', dpi=300,transparent = True)
 
     def plot_3fig(self): 
        
@@ -273,7 +275,7 @@ class Window(QtWidgets.QDialog):
         CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap )       
         CS4 = ax1.pcolor(X_water,Y_water,var_water[:,start:stop],
                           cmap = cmap_water)
-        CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[2:,start:stop], cmap = cmap)  
+        CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[2:,start:stop], cmap = cmap_water)  
                       
         if self.checkbox_title.isChecked() == True:
             title = self.change_title.text()
@@ -343,7 +345,7 @@ class Window(QtWidgets.QDialog):
             
          
         ax1.set_ylim(self.max_water,self.min_water)
-        ax2.set_ylim(self.max_sed,self.min_sed+0.4)  
+        ax2.set_ylim(self.min_sed+0.5,self.min_sed)  #self.max_sed
         ax0.set_ylim(self.min_ice,self.max_ice)
         
         # hide horizontal axis labels 
