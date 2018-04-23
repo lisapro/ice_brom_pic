@@ -196,7 +196,7 @@ class Window(QtWidgets.QDialog):
             self.max_ice =  np.amax(self.depth_ice_faces)
         
         self.depth_water = np.array(self.fh_water.variables['z_faces'][:])
-        self.depth_sed = self.fh_sediments.variables['z_faces'][2:] 
+        self.depth_sed = self.fh_sediments.variables['z_faces'][:] 
         
         self.min_water = np.amin(self.depth_water)
         self.max_water = np.amax(self.depth_water)
@@ -275,7 +275,7 @@ class Window(QtWidgets.QDialog):
         CS1 = ax0.pcolor(X,Y,var_ice[:,start:stop],cmap = cmap )       
         CS4 = ax1.pcolor(X_water,Y_water,var_water[:,start:stop],
                           cmap = cmap_water)
-        CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[2:,start:stop], cmap = cmap_water)  
+        CS7 = ax2.pcolor(X_sed,Y_sed,var_sed[:,start:stop], cmap = cmap_water)  
                       
         if self.checkbox_title.isChecked() == True:
             title = self.change_title.text()
@@ -345,7 +345,7 @@ class Window(QtWidgets.QDialog):
             
          
         ax1.set_ylim(self.max_water,self.min_water)
-        ax2.set_ylim(self.min_sed+0.5,self.min_sed)  #self.max_sed
+        ax2.set_ylim(self.max_sed,self.min_sed)  #
         ax0.set_ylim(self.min_ice,self.max_ice)
         
         # hide horizontal axis labels 
