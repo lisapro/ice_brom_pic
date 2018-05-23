@@ -1,6 +1,6 @@
 # Ice BROM pictures 
 ## About the code 
-The repository consists of thre GUI for visualisation the results of 1D transport SPBM
+The repository consists of thre GUI for visualisation the results of 1D transport model SPBM
 https://www.researchgate.net/publication/317901682_Simultaneous_simulation_of_sea_ice-water-sediments_biogeochemistry 
 
 All scripts is written on Python3
