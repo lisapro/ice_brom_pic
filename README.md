@@ -15,8 +15,7 @@ This Gui plots only water and ice
 ### difference.py
 This Gui is made for visualizing the results of modelling experiments. 
 It calculates the differences between experiment file and baseline file, 
-and plots this difference
-Only water and ice for now
+and plots this difference, only water and ice for now
 ## How to use 
 1. After running any of the scripts, the dialogue window will be opened
 You must choose the folder containing the output from IPBM, 
