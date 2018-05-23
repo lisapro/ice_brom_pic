@@ -24,10 +24,10 @@ In the difference.py, it should be the folder containing ice.nc, water.nc and fo
 1. On the left panel, you should choose the element you want to plot
 All variables available in the nc file are on this panel. 
 1. After choosing the element just click "plot"
-1. If you click "values(table) you will get the table with for the chosen variable
+1. If you click "values(table)" you will get the table with for the chosen variable
 
 ## Figure adjustments
 * By default, the first available year is plotted, you can change it, using spinboxes "Start year" and "Stop year" 
-* You can type the desired figure name at the 'qlineedit' widget, it will be added if you click on "Change title" checkbox
+* You can type the desired figure name at the "qlineedit" widget, it will be added if you click on "Change title" checkbox
 
 
