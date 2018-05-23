@@ -32,7 +32,7 @@ from matplotlib.backends.backend_qt5agg import (
 class Window(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(Window, self).__init__(parent)
-        self.figure = plt.figure(figsize=(6.3, 5), dpi=100,
+        self.figure = plt.figure(figsize=(11, 8.25), dpi=100,
                         facecolor='None',edgecolor='None')        
         self.canvas = FigureCanvas(self.figure)         
         directory =  self.load_work_directory() 
@@ -163,8 +163,8 @@ class Window(QtWidgets.QDialog):
             
         if not os.path.isdir(dir_to_save):
             os.makedirs(dir_to_save)
-        filename = '{}\ice_brom_{}.png'.format(dir_to_save,self.name)       
-        plt.savefig(filename, format='png',transparent = True)
+        filename = '{}\ice_brom_{}.pdf'.format(dir_to_save,self.name)       
+        plt.savefig(filename, format='pdf',transparent = True)
         #plt.savefig(filename, format='pdf', dpi=300,transparent = True)
 
     def plot_3fig(self): 
@@ -297,11 +297,16 @@ class Window(QtWidgets.QDialog):
         #                   cmap = cmap) 
         #CS7 = ax2.contourf(X_sed,Y_sed, var_sed[:,start:stop],
         #                   cmap = cmap)    
-        
+        '''
         ax2.axhline(self.max_water, color='w', linestyle = '--',linewidth = 1 ) 
         ax2.annotate('  Sediment Water Interface',
                     xy =(start_f,self.max_water),
                     xytext=(start_f,self.max_water-0.01),color = 'w')
+        ''' 
+        ax2.axhline(self.max_water, color='k', linestyle = '--',linewidth = 1 ) 
+        ax2.annotate('  Sediment Water Interface',
+                    xy =(start_f,self.max_water),
+                    xytext=(start_f,self.max_water-0.01),color = 'k')       
         ### Time ticks ### 
         from dateutil.relativedelta import relativedelta
         if (stop-start)>= 367:
@@ -357,12 +362,16 @@ class Window(QtWidgets.QDialog):
         #plt.rcParams.update({'font.size': 14})
            
         if (stop-start)>= 365*6:
+            ax5.xaxis.set_major_formatter(
+                 mdates.DateFormatter("%b '%y")) 
             ax2.xaxis.set_major_formatter(
                 mdates.DateFormatter('%Y')) 
             #ticks = np.arange(time[start:stop],time[start:stop],50)
         elif (stop-start) > 367 and (stop-start) < 365*6:
             ax2.xaxis.set_major_formatter(
-                mdates.DateFormatter('%m/%Y'))   
+                mdates.DateFormatter("%b '%y")) 
+            #ax2.xaxis.set_major_formatter(
+            #    mdates.DateFormatter('%m/%Y'))   
         else : 
             ax2.xaxis.set_major_formatter(
                 mdates.DateFormatter('%b'))
@@ -419,7 +428,7 @@ class Window(QtWidgets.QDialog):
         self.tableWidget.show()
         #print (var_water)       
         #pass                    
-        #plt.savefig('ice_brom_{}.png'.format(name),transparent = True)
+        #plt.savefig('ice_brom_{}.'.format(name),transparent = True)
         #plt.savefig('ice_brom_{}.pdf'.format(name), format='pdf')
     
         # Save in a vector format 
