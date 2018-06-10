@@ -360,16 +360,16 @@ class Window(QtWidgets.QDialog):
         #plt.yticks(fontsize=self.fontsize, rotation=90) 
         #ax.yaxis.label.set_size(16) 
         #plt.rcParams.update({'font.size': 14})
-           
-        if (stop-start)>= 365*6:
-            ax5.xaxis.set_major_formatter(
-                 mdates.DateFormatter("%b '%y")) 
+        if (stop-start) > 367 and (stop-start) < 365:
+            ax2.xaxis.set_major_formatter(
+                mdates.DateFormatter("%b '%y"))            
+        elif (stop-start)>= 365*6:
+            #ax5.xaxis.set_major_formatter(
+            #     mdates.DateFormatter("%b '%y")) 
             ax2.xaxis.set_major_formatter(
                 mdates.DateFormatter('%Y')) 
             #ticks = np.arange(time[start:stop],time[start:stop],50)
-        elif (stop-start) > 367 and (stop-start) < 365*6:
-            ax2.xaxis.set_major_formatter(
-                mdates.DateFormatter("%b '%y")) 
+
             #ax2.xaxis.set_major_formatter(
             #    mdates.DateFormatter('%m/%Y'))   
         else : 
