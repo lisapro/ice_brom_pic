@@ -92,7 +92,7 @@ class Window(QtWidgets.QDialog):
         self.combobox_start_year.setRange(first_year, last_year-1)                 
         self.label_stop_year = QtWidgets.QLabel('Stop year:')   
         self.combobox_stop_year = QtWidgets.QSpinBox() 
-        self.combobox_stop_year.setRange(first_year+1, last_year)                        
+        self.combobox_stop_year.setRange(first_year+1, last_year+1)                        
         self.qlist_widget = QtWidgets.QListWidget()        
         self.qlist_widget.addItems(self.names_vars)
 
@@ -146,17 +146,17 @@ class Window(QtWidgets.QDialog):
         self.setWindowTitle(str(self.long_name)) 
 
         var_ice =  ma.masked_invalid (
-            np.array(self.fh_ice.variables[self.name][0:1095]).T )
+            np.array(self.fh_ice.variables[self.name][:]).T )
         var_ice_base = ma.masked_invalid (
-            np.array(self.fh_ice_base.variables[self.name][0:1095]).T )
+            np.array(self.fh_ice_base.variables[self.name][:]).T )
         
         var_ice_dif = var_ice-var_ice_base
         
         var_water = ma.masked_invalid (np.array(
-            self.fh_water.variables[self.name][0:1095][:]).T)
+            self.fh_water.variables[self.name][:]).T)
         
         var_water_base = ma.masked_invalid (np.array(
-            self.fh_water_base.variables[self.name][0:1095][:]).T)    
+            self.fh_water_base.variables[self.name][:]).T)    
             
         var_water_dif = var_water - var_water_base         
         #var_sediments = np.array(
@@ -165,7 +165,7 @@ class Window(QtWidgets.QDialog):
         data_units = self.fh_ice.variables[self.name].units
         if len(self.change_title.text()) < 1: 
             self.change_title.setText('changes in'+self.name+' '+ data_units)                    
-        return var_ice_dif,var_water_dif,var_water_dif,data_units
+        return var_ice_dif,var_water_dif,data_units
 
     def save_to_dir(self,dir_name):
         script_dir = os.path.abspath(os.path.dirname(__file__))
@@ -240,12 +240,12 @@ class Window(QtWidgets.QDialog):
         stop = date2index(to_stop, self.time,#units = time_units,
                             calendar=None, select='nearest')        
         data = self.read_var()
-        
+        #return var_ice_dif,var_water_dif,var_water_dif,data_units
         #self.fh_ice.close()         
         var_ice = data[0]
         var_water = data[1]
-        var_sed = data[2]
-        data_units = data[3]
+        #var_sed = data[2]
+        data_units = data[2]
                                  
         X,Y = np.meshgrid(self.time2[start:stop],self.depth_ice_faces)
         X  = num2date(X,units = self.time_units) #format_time  
@@ -285,12 +285,12 @@ class Window(QtWidgets.QDialog):
         #CS1 = ax0.contourf(X,Y, var_ice[:,start:stop],
         #                   cmap = cmap,levels = var_levels)
         #without interpolation 
-        vvmin = -10 
-        vvmax = 10
+        vvmin = -5
+        vvmax = 5
         normalize = matplotlib.colors.Normalize(vmin=vvmin, vmax=vvmax)
-        normalize = None
-        CS1 = ax0.pcolormesh(X,Y,var_ice[:,start:stop],
-                         norm = normalize,cmap = cmap )#) 3,edgecolor = 'w',
+        #normalize = None
+        CS1 = ax0.pcolormesh(X,Y,var_ice[:,start:stop], # norm = normalize,
+                        cmap = cmap )#) 3,edgecolor = 'w',
                          #linewidth = 0.000005)
                         
         if self.checkbox_title.isChecked() == True:
@@ -368,9 +368,9 @@ class Window(QtWidgets.QDialog):
             ax1.xaxis.set_major_formatter(
                 mdates.DateFormatter('%Y')) 
             #ticks = np.arange(time[start:stop],time[start:stop],50)
-        elif (stop-start) > 367 and (stop-start) < 365*6:
-            ax1.xaxis.set_major_formatter(
-                mdates.DateFormatter('%m/%Y'))   
+        #elif (stop-start) > 367 and (stop-start) < 365*6:
+        #    ax1.xaxis.set_major_formatter(
+        #        mdates.DateFormatter('%m/%Y'))   
         else : 
             ax1.xaxis.set_major_formatter(
                 mdates.DateFormatter('%b'))
