@@ -55,8 +55,7 @@ class Window(QtWidgets.QDialog):
         last_year = self.format_time[-1].year
         
         self.fontsize = 14
-        
-        
+            
         self.names_vars = [] 
         for names,vars in self.fh_ice.variables.items():
             self.names_vars.append(names)
@@ -84,10 +83,10 @@ class Window(QtWidgets.QDialog):
         self.checkbox_ice_max = QtWidgets.QCheckBox('Max ice')  
         self.combobox_ice_max = QtWidgets.QSpinBox()
         self.combobox_ice_max.setRange(5,500)
-        self.combobox_start_year.setRange(first_year, last_year-1)                 
+        self.combobox_start_year.setRange(first_year, last_year)                 
         self.label_stop_year = QtWidgets.QLabel('Stop year:')   
         self.combobox_stop_year = QtWidgets.QSpinBox() 
-        self.combobox_stop_year.setRange(first_year+1, last_year)                        
+        self.combobox_stop_year.setRange(first_year+1, last_year+1)                        
         self.qlist_widget = QtWidgets.QListWidget()        
         self.qlist_widget.addItems(self.names_vars)
 
@@ -186,7 +185,7 @@ class Window(QtWidgets.QDialog):
         ice_res = 6
         self.depth_ice = (self.depth - self.max_ice)*-ice_res
         self.depth_ice_faces = np.array((self.depth_faces - self.max_faces)*-ice_res)
-        
+
         self.depth_ice = np.array(self.depth_ice)
         
         self.min_ice = np.amin(self.depth_ice_faces)
@@ -360,7 +359,7 @@ class Window(QtWidgets.QDialog):
         #plt.yticks(fontsize=self.fontsize, rotation=90) 
         #ax.yaxis.label.set_size(16) 
         #plt.rcParams.update({'font.size': 14})
-        if (stop-start) > 367 and (stop-start) < 365:
+        if (stop-start) > 367 and (stop-start) < 365*6:
             ax2.xaxis.set_major_formatter(
                 mdates.DateFormatter("%b '%y"))            
         elif (stop-start)>= 365*6:
